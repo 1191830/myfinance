@@ -1,0 +1,14 @@
+@startuml
+
+actor User
+
+' Main Use Cases
+User --> (Login) : <<include>>
+User --> (Register Transaction) : <<include>>
+(Register Transaction) ..> (Select or create category) : <<include>>
+User --> (Visualize Financial Dashboard) : <<include>>
+User --> (Create/Edit category) : <<include>>
+User --> (Define or monitor goal) : <<include>>
+User --> (Generate report) : <<include>>
+
+@enduml
