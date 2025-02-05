@@ -1,0 +1,67 @@
+@startuml
+title C4 - Level 2: Logical Architecture
+
+rectangle "Frontend (React.js)" {
+    [Login Page]
+    [Dashboard]
+    [Transactions]
+    [Reports]
+    [Goal Management]
+}
+
+rectangle "Backend (Spring Boot / .NET)" {
+    rectangle "API Gateway" {
+        [Authentication API]
+        [Transaction API]
+        [Report API]
+        [Goal API]
+    }
+
+    rectangle "Services" {
+        [Authentication Service]
+        [Transaction Service]
+        [Report Service]
+        [Goal Management Service]
+    }
+
+    rectangle "Repositories" {
+        [User Repository]
+        [Transaction Repository]
+        [Report Repository]
+        [Goal Repository]
+    }
+}
+
+rectangle "Infrastructure" {
+    database "SQL Database" as DB
+    cloud "External Services" {
+        [Firebase Api]
+        [Yahoo Finance API]
+        [OpenAI API]
+        [Banking API]
+        [Notification Service (Firebase/Twilio)]
+    }
+}
+
+' Connections
+[Login Page] --> [Authentication API] : "User Login/Signup"
+[Dashboard] --> [Transaction API] : "Fetch Transactions"
+[Transactions] --> [Transaction API] : "Add/Delete Transactions"
+[Reports] --> [Report API] : "Generate Reports"
+[Goal Management] --> [Goal API] : "Set Goals"
+
+[Transaction API] --> [Transaction Service]
+[Report API] --> [Report Service]
+[Goal API] --> [Goal Management Service]
+
+[Transaction Service] --> [Transaction Repository] : "Store Transactions"
+[Report Service] --> [Report Repository] : "Generate Reports"
+[Goal Management Service] --> [Goal Repository] : "Save Goals"
+
+[Transaction Service] --> [Yahoo Finance API] : "Fetch Market Data"
+[Report Service] --> [OpenAI API] : "Generate AI-Based Insights"
+[Authentication Service] --> [Banking API] : "Bank Integration"
+[API Gateway] --> [Notification Service] : "Send Alerts"
+[Authentication API] --> [Firebase Api] : "Autenticate User"
+[Repositories] --> [DB] : "Store Data"
+@enduml

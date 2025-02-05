@@ -1,0 +1,53 @@
+@startuml
+title C4 - Level 3: Logical Architecture
+
+package "Backend (Spring Boot / .NET)" {
+    package "Controllers" {
+        component "AuthController"
+        component "TransactionController"
+        component "ReportController"
+        component "GoalController"
+    }
+
+    package "Services" {
+        component "AuthService"
+        component "TransactionService"
+        component "ReportService"
+        component "GoalService"
+    }
+
+    package "Repositories" {
+        component "TransactionRepository"
+        component "ReportRepository"
+        component "GoalRepository"
+    }
+}
+
+package "Infrastructure" {
+    database "SQL Database" as DB
+    cloud "External Services" {
+        component "Firebase API"
+        component "Yahoo Finance API"
+        component "OpenAI API"
+        component "Banking API"
+        component "Notification Service (Firebase/Twilio)"
+    }
+}
+
+' Connections
+AuthController --> AuthService : "Handles user authentication"
+TransactionController --> TransactionService : "Processes transactions"
+ReportController --> ReportService : "Generates financial reports"
+GoalController --> GoalService : "Manages financial goals"
+
+GoalService --> GoalRepository : "Manages financial goals data" 
+TransactionService --> TransactionRepository : "Stores transactions"
+ReportService --> ReportRepository : "Fetches data for reports"
+
+TransactionService --> [Yahoo Finance API] : "Fetch stock data" 
+ReportService --> [OpenAI API] : "Generate AI insights"
+AuthService --> [Banking API] : "Verify bank transactions"
+GoalService --> [Notification Service] : "Send goal alerts"
+AuthService --> [Firebase API] : "Validates user data"
+
+@enduml

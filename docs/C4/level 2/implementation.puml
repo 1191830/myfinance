@@ -1,0 +1,65 @@
+@startuml
+title C4 - Level 2: Implementation Architecture
+
+package "Frontend (React.js)" {
+    component "Login Component"
+    component "Dashboard Component"
+    component "Transaction Component"
+    component "Report Component"
+    component "Goal Component"
+}
+
+package "Backend (Spring Boot / .NET)" {
+    package "Controllers" {
+        component "Authentication Controller"
+        component "Transaction Controller"
+        component "Report Controller"
+        component "Goal Controller"
+    }
+
+    package "Services" {
+        component "Authentication Service"
+        component "Transaction Service"
+        component "Report Service"
+        component "Goal Management Service"
+    }
+
+    package "Repositories" {
+        component "User Repository"
+        component "Transaction Repository"
+        component "Report Repository"
+        component "Goal Repository"
+    }
+}
+
+package "Infrastructure" {
+    database "SQL Database (PostgreSQL)" as DB
+    cloud "External Services" {
+        component "Yahoo Finance API"
+        component "OpenAI API"
+        component "Banking API"
+        component "Notification Service (Firebase/Twilio)"
+    }
+}
+
+' Connections
+"Login Component" --> "Authentication Controller" : "User Authentication"
+"Dashboard Component" --> "Transaction Controller" : "Fetch Transactions"
+"Transaction Component" --> "Transaction Controller" : "Add/Delete Transactions"
+"Report Component" --> "Report Controller" : "Generate Reports"
+"Goal Component" --> "Goal Controller" : "Set Goals"
+
+"Transaction Controller" --> "Transaction Service"
+"Report Controller" --> "Report Service"
+"Goal Controller" --> "Goal Management Service"
+
+"Transaction Service" --> "Transaction Repository" : "Store Transactions"
+"Report Service" --> "Report Repository" : "Generate Reports"
+"Goal Management Service" --> "Goal Repository" : "Save Goals"
+
+"Transaction Service" --> "Yahoo Finance API" : "Fetch Market Data"
+"Report Service" --> "OpenAI API" : "Generate AI-Based Insights"
+"Authentication Service" --> "Banking API" : "Bank Integration"
+"Goal Controller" --> "Notification Service" : "Send Goal Updates"
+
+@enduml
