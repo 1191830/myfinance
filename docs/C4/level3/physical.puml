@@ -1,0 +1,45 @@
+@startuml
+title C4 - Level 3: Physical Architecture
+
+node "User Device" {
+    [Web Browser (React)]
+}
+
+node "Cloud Infrastructure (AWS / Azure)" {
+    node "Backend Server" {
+        node "Spring Boot / .NET Microservices" {
+            [AuthService]
+            [TransactionService]
+            [ReportService]
+            [GoalService]
+        }
+    }
+
+    database "SQL Database (PostgreSQL)" as DB
+}
+
+cloud "External APIs" {
+    [Firebase API]
+    [Yahoo Finance API]
+    [OpenAI API]
+    [Banking API]
+    [Notification Service (Firebase/Twilio)]
+}
+
+' Connections
+[Web Browser (React)] --> [AuthService] : "User authentication"
+[Web Browser (React)] --> [TransactionService] : "Manage transactions"
+[Web Browser (React)] --> [ReportService] : "Generate reports"
+[Web Browser (React)] --> [GoalService] : "Manage financial goals"
+
+[TransactionService] --> DB : "Stores transactions"
+[ReportService] --> DB : "Retrieves financial reports"
+[GoalService] --> DB : "Manages financial goals"
+
+[AuthService] --> [Firebase API] : "Stores user data"
+[TransactionService] --> [Yahoo Finance API] : "Retrieve stock data"
+[ReportService] --> [OpenAI API] : "Generate AI insights"
+[AuthService] --> [Banking API] : "Verify bank transactions"
+[GoalService] --> [Notification Service] : "Send goal updates"
+
+@enduml

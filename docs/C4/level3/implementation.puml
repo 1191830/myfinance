@@ -1,0 +1,67 @@
+@startuml
+title C4 - Level 3: Implementation Architecture
+
+package "Frontend (React.js)" {
+    component "LoginPage.js"
+    component "Dashboard.js"
+    component "Transactions.js"
+    component "Reports.js"
+    component "Goals.js"
+}
+
+package "Backend (Spring Boot / .NET)" {
+    package "Controllers" {
+        component "AuthController.java"
+        component "TransactionController.java"
+        component "ReportController.java"
+        component "GoalController.java"
+    }
+
+    package "Services" {
+        component "AuthService.java"
+        component "TransactionService.java"
+        component "ReportService.java"
+        component "GoalService.java"
+    }
+
+    package "Repositories" {
+        component "TransactionRepository.java"
+        component "ReportRepository.java"
+        component "GoalRepository.java"
+    }
+}
+
+package "Infrastructure" {
+    database "SQL Database (PostgreSQL)" as DB
+    cloud "External Services" {
+        component "Firebase API"
+        component "Yahoo Finance API"
+        component "OpenAI API"
+        component "Banking API"
+        component "Notification Service (Firebase/Twilio)"
+    }
+}
+
+' Connections
+"LoginPage.js" --> "AuthController.java" : "Handles authentication"
+"Dashboard.js" --> "TransactionController.java" : "Fetch transactions"
+"Transactions.js" --> "TransactionController.java" : "Add/Delete transactions"
+"Reports.js" --> "ReportController.java" : "Generate financial reports"
+"Goals.js" --> "GoalController.java" : "Manage financial goals"
+
+"AuthController.java" --> "AuthService.java"
+"TransactionController.java" --> "TransactionService.java"
+"ReportController.java" --> "ReportService.java"
+"GoalController.java" --> "GoalService.java"
+
+"TransactionService.java" --> "TransactionRepository.java" : "Store transactions"
+"ReportService.java" --> "ReportRepository.java" : "Generate reports"
+"GoalService.java" --> "GoalRepository.java" : "Manage financial goals"
+
+"TransactionService.java" --> "Yahoo Finance API" : "Retrieve stock data"
+"ReportService.java" --> "OpenAI API" : "Generate AI insights"
+"AuthService.java" --> "Banking API" : "Verify bank transactions"
+"AuthService.java" --> "Firebase API" : Checks user authentication
+"GoalService.java" --> "Notification Service" : "Send goal updates"
+
+@enduml
