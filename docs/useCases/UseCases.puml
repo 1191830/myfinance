@@ -2,13 +2,24 @@
 
 actor User
 
-' Main Use Cases
-User --> (Login) : <<include>>
-User --> (Register Transaction) : <<include>>
-(Register Transaction) ..> (Select or create category) : <<include>>
-User --> (Visualize Financial Dashboard) : <<include>>
-User --> (Create/Edit category) : <<include>>
-User --> (Define or monitor goal) : <<include>>
-User --> (Generate report) : <<include>>
+rectangle "PersonalFinanceApp" {
+  usecase "Add Transaction" as UC1
+  usecase "Edit Transaction" as UC2
+  usecase "View Monthly Report" as UC3
+  usecase "Add Investment" as UC4
+  usecase "Track Saving Goals" as UC5
+  usecase "View Dashboard" as UC6
+  usecase "Export Data (Future)" as UC7
+  usecase "Sync Investment Prices (Future)" as UC8
+}
+
+User --> UC1
+User --> UC2
+User --> UC3
+User --> UC4
+User --> UC5
+User --> UC6
+User --> UC7
+User --> UC8
 
 @enduml
