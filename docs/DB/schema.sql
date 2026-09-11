@@ -4,6 +4,9 @@ CREATE TYPE transaction_type AS ENUM ('INCOME', 'EXPENSE');
 -- Transaction frequency: recurring or one-time
 CREATE TYPE transaction_frequency AS ENUM ('ONE_TIME', 'RECURRING');
 
+-- Recurrence cadence for a recurring transaction template
+CREATE TYPE recurrence_interval AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
+
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name TEXT NOT NULL
@@ -14,6 +17,7 @@ CREATE TABLE recurring_transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     type transaction_type NOT NULL,
     frequency transaction_frequency NOT NULL DEFAULT 'RECURRING',
+    recurrence_interval recurrence_interval NOT NULL,
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     amount NUMERIC(12,2) NOT NULL,
     description TEXT,

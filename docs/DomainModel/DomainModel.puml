@@ -25,6 +25,7 @@ class RecurringTransaction {
   +UUID id
   +TransactionType type
   +TransactionFrequency frequency
+  +RecurrenceInterval recurrenceInterval
   +Decimal amount
   +Date startDate
   +Date endDate

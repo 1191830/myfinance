@@ -66,10 +66,10 @@ Frontend (`cd frontend`):
   flush it as a foreign key even when its id is real. The owning service must re-resolve it
   via its repository before `save()` (see `TransactionServiceImpl.resolveCategory`).
 - An enum column backed by a **Postgres native enum type** (`transaction_type`,
-  `transaction_frequency`) needs `@JdbcTypeCode(SqlTypes.NAMED_ENUM)` alongside
-  `@Enumerated(EnumType.STRING)`, or every insert/update fails with "column is of type X but
-  expression is of type character varying". `RecurringTransaction.type`/`.frequency` have
-  the same columns and will need the same annotation once its create endpoint is exercised.
+  `transaction_frequency`, `recurrence_interval`) needs `@JdbcTypeCode(SqlTypes.NAMED_ENUM)`
+  alongside `@Enumerated(EnumType.STRING)`, or every insert/update fails with "column is of
+  type X but expression is of type character varying". `RecurringTransaction.type`/
+  `.frequency`/`.recurrenceInterval` all carry it now.
 - Frontend, one set per resource: `model/<X>Model.ts` (API shape) + `service/<X>Service.ts`
   (axios functions) + `hook/use<X>.ts` (React Query). Display formatting goes through the
   shared `lib/format.ts`, not a per-resource view model. Shared components in `components/`
@@ -88,8 +88,9 @@ Frontend (`cd frontend`):
 ## Domain model
 
 - `categories(id, name)` — case-insensitive unique `name`.
-- `recurring_transactions` — a template: `type`, `frequency`, `category`, `amount`,
-  `description`, `start_date` (first occurrence), `end_date?` (last occurrence), `active`.
+- `recurring_transactions` — a template: `type`, `frequency`, `recurrence_interval`
+  (`MONTHLY`/`QUARTERLY`/`YEARLY`), `category`, `amount`, `description`, `start_date` (first
+  occurrence), `end_date?` (last occurrence), `active`.
 - `transactions` — `type`, `frequency`, `category`, `amount`, `date`, `description`,
   `recurring_id?` → template (set null when the template is deleted).
 - `investments` — `type`, `ticker?`, `amount_invested`, `current_value`, `start_date`,
@@ -97,9 +98,14 @@ Frontend (`cd frontend`):
 - `saving_goals` — `name`, `target_amount`, `current_amount`, `start_date`, `end_date?`.
 
 **Recurring behaviour:** templates live in `recurring_transactions`; a generator
-**materializes** one concrete `transactions` row per period per active template —
-idempotent per template per period, honouring the `start_date` day-of-month and `end_date`.
-Generated rows are ordinary transactions and can be edited or deleted individually.
+**materializes** one concrete `transactions` row per period per active template, per its
+`recurrence_interval` (monthly/quarterly/yearly) — idempotent per template per period
+(existence check, no separate "last generated" state), honouring the `start_date`
+day-of-month and `end_date`, and catching up on any periods missed since the last run. A
+daily `@Scheduled` job (`RecurringTransactionScheduler`, 00:05) triggers it automatically;
+`POST /api/transactions/generate` triggers it manually (also exposed as "Gerar agora" on
+the Recorrências page). Generated rows are ordinary transactions and can be edited or
+deleted individually.
 
 ## Status
 
@@ -107,19 +113,14 @@ CRUD + filter endpoints for every resource plus `/api/reports/*` (net worth, mon
 cash flow, by-category), now with Bean Validation. Frontend: all five screens (Início/
 Overview, Transações, Detalhe do mês, Investimentos, Objetivos) rebuilt on the navy Tailwind
 system; MUI removed. Add/edit/delete work end to end for transaction, investment, saving
-goal and category (modals in `components/forms/`); a Categorias page exists. Recurring
-templates have no form yet (deferred to the recurrence-interval work). Recurrence generator
-drafted (`TransactionServiceImpl.generateMonthlyTransactions`, reachable via
-`POST /api/transactions/generate`) but not scheduled or interval-aware. Definições has no
-page yet.
+goal, category and recurring-transaction template (modals in `components/forms/`); Categorias
+and Recorrências pages exist. Recurrence engine is done: `recurrence_interval` enum, an
+interval-aware/catch-up generator, and a daily `@Scheduled` job — see Domain model above.
+Definições has no page yet.
 
 ## Roadmap
 
-1. **Recurrence engine** — `recurrence_interval` enum (`MONTHLY`, `QUARTERLY`, `YEARLY`) on
-   `recurring_transactions`; interval-aware generator + a daily `@Scheduled` job
-   (`@EnableScheduling`); build the recurring-transaction form against that final model
-   rather than today's plain `ONE_TIME`/`RECURRING` one.
-2. **Definições page**; wire the Topbar search + period selector.
-3. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
+1. **Definições page**; wire the Topbar search + period selector.
+2. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
    `ticker`/`last_synced`; CSV/Excel export; Docker packaging; backend paged
    `GET /api/transactions`; tests.
