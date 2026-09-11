@@ -1,13 +1,19 @@
 export type TransactionType = 'INCOME' | 'EXPENSE';
-
 export type Frequency = 'ONE_TIME' | 'RECURRING';
 
-export interface Transaction {
+export interface TransactionModel {
   id: string;
-  amount: number;
-  description: string;
-  date: string; // ISO string, ex: "2025-08-08"
-  categoryId: string;
   type: TransactionType;
   frequency: Frequency;
+  category: {
+    id: string;
+    name: string;
+  };
+  amount: number
+  date: string; // ISO string
+  description: string;
+  recurringTransaction?: {
+    id: string;
+    frequency: Frequency;
+  } | null;
 }

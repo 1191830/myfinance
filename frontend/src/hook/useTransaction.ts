@@ -1,6 +1,6 @@
 // hooks/useTransaction.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Transaction, TransactionType, Frequency } from '../model/TransactionModel';
+import type { TransactionModel, TransactionType, Frequency } from '../model/TransactionModel';
 import {
   getAllTransactions,
   getTransactionById,
@@ -16,7 +16,7 @@ import {
 
 // Lista todas as transações
 export const useTransactions = () => {
-  return useQuery<Transaction[]>({
+  return useQuery<TransactionModel[]>({
     queryKey: ['transactions'],
     queryFn: getAllTransactions,
   });
@@ -24,7 +24,7 @@ export const useTransactions = () => {
 
 // Busca transação por ID
 export const useTransaction = (id: string) => {
-  return useQuery<Transaction>({
+  return useQuery<TransactionModel>({
     queryKey: ['transaction', id],
     queryFn: () =>
       getTransactionById(id).then((res) => {
@@ -50,7 +50,7 @@ export const useCreateTransaction = () => {
 export const useUpdateTransaction = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, transaction }: { id: string; transaction: Transaction }) =>
+    mutationFn: ({ id, transaction }: { id: string; transaction: TransactionModel }) =>
       updateTransaction(id, transaction),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
@@ -72,7 +72,7 @@ export const useDeleteTransaction = () => {
 
 // Busca por categoria
 export const useTransactionsByCategoryId = (categoryId: string) => {
-  return useQuery<Transaction[]>({
+  return useQuery<TransactionModel[]>({
     queryKey: ['transactionsByCategory', categoryId],
     queryFn: () => getTransactionsByCategoryId(categoryId),
     enabled: !!categoryId,
@@ -81,7 +81,7 @@ export const useTransactionsByCategoryId = (categoryId: string) => {
 
 // Busca por tipo
 export const useTransactionsByType = (type: TransactionType) => {
-  return useQuery<Transaction[]>({
+  return useQuery<TransactionModel[]>({
     queryKey: ['transactionsByType', type],
     queryFn: () => getTransactionsByType(type),
     enabled: !!type,
@@ -90,7 +90,7 @@ export const useTransactionsByType = (type: TransactionType) => {
 
 // Busca por intervalo de datas
 export const useTransactionsByDateRange = (startDate: string, endDate: string) => {
-  return useQuery<Transaction[]>({
+  return useQuery<TransactionModel[]>({
     queryKey: ['transactionsByDateRange', startDate, endDate],
     queryFn: () => getTransactionsByDateRange(startDate, endDate),
     enabled: !!startDate && !!endDate,
@@ -99,7 +99,7 @@ export const useTransactionsByDateRange = (startDate: string, endDate: string) =
 
 // Busca por frequência
 export const useTransactionsByFrequency = (frequency: Frequency) => {
-  return useQuery<Transaction[]>({
+  return useQuery<TransactionModel[]>({
     queryKey: ['transactionsByFrequency', frequency],
     queryFn: () => getTransactionsByFrequency(frequency),
     enabled: !!frequency,
@@ -108,7 +108,7 @@ export const useTransactionsByFrequency = (frequency: Frequency) => {
 
 // Busca por descrição
 export const useTransactionsByDescription = (description: string) => {
-  return useQuery<Transaction[]>({
+  return useQuery<TransactionModel[]>({
     queryKey: ['transactionsByDescription', description],
     queryFn: () => getTransactionsByDescription(description),
     enabled: !!description,
