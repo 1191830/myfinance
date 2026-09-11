@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', system-ui, sans-serif; color: #1b2733; -webkit-font-smoothing: antialiased; }
+    a { color: #1f6fbf; text-decoration: none; }
+    a:hover { color: #1a5fa4; }
+    select, input { font-family: inherit; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .flabel { font-size: 12px; font-weight: 500; color: #5c6b7a; }
+    .finput { height: 36px; width: 100%; border-radius: 6px; border: 1px solid #d7dbe0; background: #fff; padding: 0 12px; font-size: 13px; color: #1b2733; outline: none; }
+  </style>
+</helmet>
+
+<div style="position: relative; width: 640px; height: 620px; background: #f5f6f8; overflow: hidden;">
+  <div style="position: absolute; inset: 0; background: rgba(18,32,47,0.45); display: flex; align-items: center; justify-content: center; padding: 16px;">
+    <div style="width: 100%; max-width: 448px; border-radius: 8px; border: 1px solid #e5e8ec; background: #ffffff; padding: 20px; box-shadow: 0 10px 30px rgba(18,32,47,0.25);">
+      <form style="display: flex; flex-direction: column; gap: 14px;">
+        <div style="font-size: 15px; font-weight: 600; color: #1b2733;">Adicionar transação</div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="field">
+            <span class="flabel">Tipo</span>
+            <select class="finput">
+              <option selected>Despesa</option>
+              <option>Rendimento</option>
+            </select>
+          </div>
+          <div class="field">
+            <span class="flabel">Recorrência</span>
+            <select class="finput">
+              <option selected>Único</option>
+              <option>Recorrente</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Categoria</span>
+          <select class="finput">
+            <option>Sem categoria</option>
+            <option>Entertainment</option>
+            <option selected>Food</option>
+            <option>Health</option>
+            <option>Investment</option>
+            <option>Salary</option>
+            <option>Transport</option>
+          </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="field">
+            <span class="flabel">Valor (€)</span>
+            <input class="finput" type="text" value="42.50">
+          </div>
+          <div class="field">
+            <span class="flabel">Data</span>
+            <input class="finput" type="text" value="20/07/2025">
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="flabel">Descrição</span>
+          <input class="finput" type="text" value="Compras no supermercado">
+        </div>
+
+        <div style="margin-top: 6px; display: flex; justify-content: flex-end; gap: 10px;">
+          <button type="button" style="height: 36px; border-radius: 6px; border: 1px solid #d7dbe0; background: #ffffff; padding: 0 16px; font-size: 13px; font-weight: 500; color: #1b2733;">Cancelar</button>
+          <button type="button" style="height: 36px; border-radius: 6px; border: none; background: #1f6fbf; padding: 0 16px; font-size: 13px; font-weight: 500; color: #ffffff;">Adicionar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
