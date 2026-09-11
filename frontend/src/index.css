@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+/* MyFinance design tokens — navy shell, IBM Plex Sans, borders over shadows.
+   See docs/design/ (published design canvas). */
+@theme {
+  --font-sans: "IBM Plex Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
+
+  --color-navy-900: #12314f; /* sidebar / topbar */
+  --color-navy-800: #1b3e60; /* panels on navy */
+  --color-navy-700: #254c72; /* borders on navy */
+  --color-navy-600: #2f5680;
+  --color-navy-active: #0c2942;
+
+  --color-canvas: #f5f6f8; /* app background */
+  --color-line: #e5e8ec; /* card borders */
+  --color-line-soft: #eef0f3;
+  --color-ink: #1b2733; /* primary text */
+  --color-muted: #5c6b7a; /* secondary text */
+  --color-faint: #8a97a4; /* captions / labels */
+
+  --color-brand: #1f6fbf; /* primary action */
+  --color-brand-strong: #1a5fa4;
+  --color-income: #1f8a5f; /* rendimento / positive */
+  --color-expense: #c23b3b; /* despesa / negative */
+  --color-gold: #e0a53a; /* accent */
+  --color-gold-text: #b07d1f;
+
+  --color-income-tint: #e7f4ee;
+  --color-expense-tint: #fbebea;
+  --color-gold-tint: #fbf1dd;
+
+  --radius-card: 8px;
+  --radius-control: 6px;
+}
+
+body {
+  margin: 0;
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* tabular figures for money / metrics */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
