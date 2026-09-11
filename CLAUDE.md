@@ -96,6 +96,7 @@ Frontend (`cd frontend`):
 - `investments` — `type`, `ticker?`, `amount_invested`, `current_value`, `start_date`,
   `notes?`, `last_synced?`.
 - `saving_goals` — `name`, `target_amount`, `current_amount`, `start_date`, `end_date?`.
+- `settings` — single-row app settings: `display_name`.
 
 **Recurring behaviour:** templates live in `recurring_transactions`; a generator
 **materializes** one concrete `transactions` row per period per active template, per its
@@ -116,11 +117,14 @@ system; MUI removed. Add/edit/delete work end to end for transaction, investment
 goal, category and recurring-transaction template (modals in `components/forms/`); Categorias
 and Recorrências pages exist. Recurrence engine is done: `recurrence_interval` enum, an
 interval-aware/catch-up generator, and a daily `@Scheduled` job — see Domain model above.
-Definições has no page yet.
+Definições page exists (editable display name backed by a single-row `settings` table,
+read-only currency/locale, shortcuts to Categorias/Recorrências). Topbar search navigates to
+Transações with that term pre-filled; the period selector is a real dropdown but only
+changes Overview (Este mês / Mês passado — Overview's KPIs are inherently month-shaped, so
+no year option).
 
 ## Roadmap
 
-1. **Definições page**; wire the Topbar search + period selector.
-2. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
+1. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
    `ticker`/`last_synced`; CSV/Excel export; Docker packaging; backend paged
    `GET /api/transactions`; tests.

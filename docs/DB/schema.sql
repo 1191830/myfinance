@@ -57,6 +57,12 @@ CREATE TABLE saving_goals (
     end_date DATE
 );
 
+-- Single-user app settings; always exactly one row.
+CREATE TABLE settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    display_name TEXT NOT NULL
+);
+
 CREATE UNIQUE INDEX unique_category_name ON categories (LOWER(name));
 
 -- Indexes for filtering
