@@ -148,7 +148,7 @@ export const Sidebar = () => {
   const displayName = settings?.displayName ?? DEFAULT_NAME;
 
   return (
-  <aside className="flex w-[248px] shrink-0 flex-col bg-navy-900">
+  <aside className="flex w-[248px] shrink-0 flex-col overflow-y-auto bg-navy-900">
     <div className="flex items-center gap-2.5 px-5 pb-3.5 pt-[18px]">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
         <path

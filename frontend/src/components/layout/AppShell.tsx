@@ -10,11 +10,11 @@ export const AppShell = () => {
 
   return (
     <PeriodProvider>
-      <div className="flex min-h-screen bg-canvas text-ink">
+      <div className="flex h-screen overflow-hidden bg-canvas text-ink">
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <Topbar onAdd={() => setAddOpen(true)} />
-          <main className="flex-1 p-6">
+          <main className="flex-1 overflow-y-auto p-6">
             <Outlet />
           </main>
         </div>
