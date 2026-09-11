@@ -21,6 +21,17 @@ class Transaction {
   +String description
 }
 
+class RecurringTransaction {
+  +UUID id
+  +TransactionType type
+  +TransactionFrequency frequency
+  +Decimal amount
+  +Date startDate
+  +Date endDate
+  +String description
+  +Boolean active
+}
+
 class Category {
   +UUID id
   +String name
@@ -47,6 +58,8 @@ class SavingGoal {
 }
 
 ' Relationships
+Transaction --> RecurringTransaction : recurring_id
 Transaction --> Category : category_id
+RecurringTransaction --> Category : category_id
 
 @enduml

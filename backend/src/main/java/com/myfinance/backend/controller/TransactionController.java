@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -105,5 +106,12 @@ public class TransactionController {
     public ResponseEntity<List<Transaction>> getTransactionsByDescription(@RequestParam String description) {
         List<Transaction> transactions = transactionService.getTransactionsByDescription(description);
         return ResponseEntity.ok(transactions);
+    }
+
+    // POST materialize this month's occurrences from active recurring templates (idempotent)
+    @PostMapping("/generate")
+    public ResponseEntity<Map<String, Integer>> generateMonthlyTransactions() {
+        int created = transactionService.generateMonthlyTransactions();
+        return ResponseEntity.ok(Map.of("generated", created));
     }
 }

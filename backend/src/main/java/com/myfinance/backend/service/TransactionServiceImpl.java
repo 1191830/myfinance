@@ -1,9 +1,12 @@
 package com.myfinance.backend.service;
 
+import com.myfinance.backend.model.RecurringTransaction;
 import com.myfinance.backend.model.Transaction;
 import com.myfinance.backend.model.TransactionType;
+import com.myfinance.backend.repository.RecurringTransactionRepository;
 import com.myfinance.backend.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,9 +17,12 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
+    private final RecurringTransactionRepository recurringTransactionRepository;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository,
+            RecurringTransactionRepository recurringTransactionRepository) {
         this.transactionRepository = transactionRepository;
+        this.recurringTransactionRepository = recurringTransactionRepository;
     }
 
     @Override
@@ -76,5 +82,47 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> getTransactionsByDescription(String description) {
         return transactionRepository.findByDescriptionIgnoreCaseContainingOrderByDateDesc(description);
+    }
+
+    /**
+     * Generate transactions for the current month based on active recurring
+     * templates.
+     */
+    @Override
+    @Transactional
+    public int generateMonthlyTransactions() {
+        LocalDate now = LocalDate.now();
+        List<RecurringTransaction> activeRecurring = recurringTransactionRepository.findByActiveTrue();
+        int created = 0;
+
+        for (RecurringTransaction template : activeRecurring) {
+            // Skip if the template has not started yet or its end date has passed
+            if (template.getStartDate() != null && now.isBefore(template.getStartDate()))
+                continue;
+            if (template.getEndDate() != null && now.isAfter(template.getEndDate()))
+                continue;
+
+            // Check if a transaction already exists for this month
+            boolean exists = transactionRepository.findByDateBetweenOrderByDateDesc(
+                    now.withDayOfMonth(1),
+                    now.withDayOfMonth(now.lengthOfMonth())).stream()
+                    .anyMatch(t -> t.getRecurringTransaction() != null
+                            && t.getRecurringTransaction().getId().equals(template.getId()));
+
+            if (!exists) {
+                int day = Math.min(template.getStartDate().getDayOfMonth(), now.lengthOfMonth());
+                Transaction t = new Transaction();
+                t.setRecurringTransaction(template);
+                t.setType(template.getType());
+                t.setFrequency(template.getFrequency());
+                t.setCategory(template.getCategory());
+                t.setAmount(template.getAmount());
+                t.setDate(now.withDayOfMonth(day));
+                t.setDescription(template.getDescription());
+                transactionRepository.save(t);
+                created++;
+            }
+        }
+        return created;
     }
 }

@@ -64,15 +64,36 @@ personal-finance-app/
 
 ### 🧾 Transaction
 
-| Field       | Type                          | Description                           |
-| ----------- | ----------------------------- | ------------------------------------- |
-| id          | UUID                          | Unique identifier                     |
-| type        | ENUM('INCOME', 'EXPENSE')     | Defines the nature of the transaction |
-| frequency   | ENUM('ONE_TIME', 'RECURRING') | One-time or recurring                 |
-| category_id | UUID (FK)                     | Link to category                      |
-| amount      | DECIMAL                       | Transaction amount                    |
-| date        | DATE                          | Date of transaction                   |
-| description | TEXT                          | Optional description                  |
+| Field        | Type                          | Description                                          |
+| ------------ | ----------------------------- | --------------------------------------------------- |
+| id           | UUID                          | Unique identifier                                   |
+| type         | ENUM('INCOME', 'EXPENSE')     | Defines the nature of the transaction               |
+| frequency    | ENUM('ONE_TIME', 'RECURRING') | One-time or recurring                               |
+| category_id  | UUID (FK)                     | Link to category                                    |
+| recurring_id | UUID (FK, nullable)           | Link to the `RecurringTransaction` that generated it |
+| amount       | DECIMAL                       | Transaction amount                                  |
+| date         | DATE                          | Date of transaction                                 |
+| description  | TEXT                          | Optional description                                |
+
+---
+
+### 🔁 RecurringTransaction
+
+A template. A generator materializes one concrete `Transaction` per period per active
+template (idempotent per template per period, honouring `start_date` day-of-month and
+`end_date`). Generated transactions can then be edited or deleted individually.
+
+| Field       | Type                          | Description                          |
+| ----------- | ----------------------------- | ----------------------------------- |
+| id          | UUID                          | Unique identifier                   |
+| type        | ENUM('INCOME', 'EXPENSE')     | Nature of the recurring entry       |
+| frequency   | ENUM('ONE_TIME', 'RECURRING') | Always `RECURRING`                  |
+| category_id | UUID (FK)                     | Link to category                    |
+| amount      | DECIMAL                       | Amount of each occurrence           |
+| description | TEXT                          | Optional description                |
+| start_date  | DATE                          | First occurrence                    |
+| end_date    | DATE (nullable)               | Optional last occurrence            |
+| active      | BOOLEAN                       | Cancels future occurrences when off |
 
 ---
 

@@ -9,8 +9,22 @@ CREATE TABLE categories (
     name TEXT NOT NULL
 );
 
+-- Recurring transactions template
+CREATE TABLE recurring_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    type transaction_type NOT NULL,
+    frequency transaction_frequency NOT NULL DEFAULT 'RECURRING',
+    category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
+    amount NUMERIC(12,2) NOT NULL,
+    description TEXT,
+    start_date DATE NOT NULL,   -- first occurrence
+    end_date DATE,              -- optional, last occurrence
+    active BOOLEAN DEFAULT TRUE -- cancel future occurrences
+);
+
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    recurring_id UUID REFERENCES recurring_transactions(id) ON DELETE SET NULL,
     type transaction_type NOT NULL,
     frequency transaction_frequency NOT NULL,
     category_id UUID REFERENCES categories(id) ON DELETE SET NULL,
@@ -41,4 +55,7 @@ CREATE TABLE saving_goals (
 
 CREATE UNIQUE INDEX unique_category_name ON categories (LOWER(name));
 
-CREATE INDEX idx_transaction_date ON transactions (date);
+-- Indexes for filtering
+CREATE INDEX idx_transaction_date ON transactions(date);
+CREATE INDEX idx_transaction_category ON transactions(category_id);
+CREATE INDEX idx_transaction_type ON transactions(type);

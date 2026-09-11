@@ -29,4 +29,12 @@ public interface TransactionService {
     List<Transaction> getTransactionsByFrequency(String frequency);
 
     List<Transaction> getTransactionsByDescription(String description);
+
+    /**
+     * Materializes one transaction for the current month for every active recurring
+     * template that does not already have one. Idempotent per template per month.
+     *
+     * @return the number of transactions created
+     */
+    int generateMonthlyTransactions();
 }

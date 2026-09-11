@@ -2,6 +2,8 @@ package com.myfinance.backend.repository;
 
 import com.myfinance.backend.model.Transaction;
 import com.myfinance.backend.model.TransactionType;
+import com.myfinance.backend.model.TransactionFrequency;
+import com.myfinance.backend.model.RecurringTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
@@ -25,4 +27,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     // Buscar transações por descrição contendo texto (case insensitive)
     List<Transaction> findByDescriptionIgnoreCaseContainingOrderByDateDesc(String description);
 
+    // Buscar transações geradas a partir de um template recorrente específico
+    List<Transaction> findByRecurringTransactionOrderByDateDesc(RecurringTransaction recurringTransaction);
 }

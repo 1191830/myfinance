@@ -6,10 +6,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "transactions", indexes = {
-        @Index(name = "idx_transaction_date", columnList = "date")
-})
-public class Transaction {
+@Table(name = "recurring_transactions")
+public class RecurringTransaction {
 
     @Id
     @GeneratedValue
@@ -24,24 +22,23 @@ public class Transaction {
     private TransactionFrequency frequency;
 
     @ManyToOne
-    @JoinColumn(name = "category_id", foreignKey = @ForeignKey(name = "fk_transaction_category"))
+    @JoinColumn(name = "category_id", foreignKey = @ForeignKey(name = "fk_recurring_category"))
     private Category category;
 
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
-    @Column(nullable = false)
-    private LocalDate date;
-
     @Column(columnDefinition = "TEXT")
     private String description;
 
-    // NEW: link to recurring template
-    @ManyToOne
-    @JoinColumn(name = "recurring_id", foreignKey = @ForeignKey(name = "fk_transaction_recurring"))
-    private RecurringTransaction recurringTransaction;
+    @Column(nullable = false)
+    private LocalDate startDate;
 
-    // Getters and Setters
+    @Column
+    private LocalDate endDate;
+
+    @Column(nullable = false)
+    private boolean active = true;
 
     public UUID getId() {
         return id;
@@ -83,14 +80,6 @@ public class Transaction {
         this.amount = amount;
     }
 
-    public LocalDate getDate() {
-        return date;
-    }
-
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -99,11 +88,27 @@ public class Transaction {
         this.description = description;
     }
 
-    public RecurringTransaction getRecurringTransaction() {
-        return recurringTransaction;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setRecurringTransaction(RecurringTransaction recurringTransaction) {
-        this.recurringTransaction = recurringTransaction;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
+    }
+
+    public LocalDate getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }
