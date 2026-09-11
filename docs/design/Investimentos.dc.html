@@ -1,0 +1,205 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', system-ui, sans-serif; color: #1b2733; -webkit-font-smoothing: antialiased; }
+    a { color: #1f6fbf; text-decoration: none; }
+    a:hover { color: #1a5fa4; }
+    .tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+    .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #8a97a4; }
+    .card { background: #ffffff; border: 1px solid #e5e8ec; border-radius: 8px; box-shadow: 0 1px 2px rgba(18,32,47,.05); }
+    .navi { display: flex; align-items: center; gap: 11px; height: 40px; padding: 0 12px; border-radius: 6px; font-size: 14px; color: #b9c9da; cursor: pointer; }
+    .navi:hover { background: #16375a; color: #ffffff; }
+    .navi.on { background: #0c2942; color: #ffffff; box-shadow: inset 3px 0 0 #e0a53a; }
+    .navi svg { flex-shrink: 0; }
+    table.hold { width: 100%; border-collapse: collapse; }
+    table.hold th { font-size: 11px; font-weight: 600; color: #8a97a4; text-transform: uppercase; letter-spacing: .05em; padding: 11px 16px; background: #fafbfc; border-bottom: 1px solid #eef0f3; text-align: right; }
+    table.hold th:first-child, table.hold th:nth-child(2) { text-align: left; }
+    table.hold td { padding: 12px 16px; font-size: 13px; text-align: right; }
+    table.hold td:first-child, table.hold td:nth-child(2) { text-align: left; }
+    table.hold tbody tr + tr td { border-top: 1px solid #f1f3f5; }
+  </style>
+</helmet>
+
+<div style="display: flex; min-height: 860px; background: #f5f6f8;">
+
+  <aside style="width: 248px; flex-shrink: 0; background: #12314f; display: flex; flex-direction: column;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 18px 20px 14px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="#e0a53a" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 12.5l2.6 2.6L16 9.4" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="color: #ffffff; font-size: 16px; font-weight: 600; letter-spacing: .01em;">myfinance</span>
+    </div>
+    <nav style="display: flex; flex-direction: column; padding: 6px 12px; gap: 2px;">
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Início</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.6"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg>Transações</div>
+      <div class="navi on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Investimentos</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Objetivos</div>
+      <div style="height: 1px; background: #254c72; margin: 10px 12px;"></div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V5.5A1.5 1.5 0 0 1 5.5 4H12l8 8-8 8-8-8Z"/><circle cx="8.4" cy="8.4" r="1.4"/></svg>Categorias</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>Definições</div>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <div style="margin: 12px; padding: 14px 15px; background: #1b3e60; border-radius: 8px;">
+      <div class="eyebrow" style="color: #7f9cba;">Património líquido</div>
+      <div class="tnum" style="color: #ffffff; font-size: 25px; font-weight: 300; margin-top: 4px; letter-spacing: -.01em;">€48.230,15</div>
+      <div style="display: flex; gap: 14px; margin-top: 13px;">
+        <div style="flex: 1;"><div style="font-size: 11px; color: #7f9cba;">Ativos</div><div class="tnum" style="font-size: 13px; color: #dfe8f1; font-weight: 500; margin-top: 1px;">€61.240,00</div><div style="height: 4px; background: #0c2942; border-radius: 2px; margin-top: 6px;"><div style="width: 100%; height: 4px; background: #e0a53a; border-radius: 2px;"></div></div></div>
+        <div style="flex: 1;"><div style="font-size: 11px; color: #7f9cba;">Passivos</div><div class="tnum" style="font-size: 13px; color: #dfe8f1; font-weight: 500; margin-top: 1px;">€13.009,85</div><div style="height: 4px; background: #0c2942; border-radius: 2px; margin-top: 6px;"><div style="width: 21%; height: 4px; background: #6f8aa6; border-radius: 2px;"></div></div></div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-top: 1px solid #254c72;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #2f5680; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">RM</div>
+      <div style="flex-grow: 1; line-height: 1.25;"><div style="color: #ffffff; font-size: 13px; font-weight: 500;">Rui Marques</div><div style="color: #7f9cba; font-size: 11px;">Conta pessoal</div></div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7f9cba" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </aside>
+
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+    <header style="height: 56px; flex-shrink: 0; background: #12314f; display: flex; align-items: center; justify-content: space-between; padding: 0 24px;">
+      <div style="position: relative; width: 280px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7f9cba" stroke-width="1.8" stroke-linecap="round" style="position: absolute; left: 10px; top: 9px;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="text" value="" placeholder="Procurar transações…" style="width: 100%; height: 34px; background: #1b3e60; border: 1px solid #254c72; border-radius: 6px; color: #ffffff; font: inherit; font-size: 13px; padding: 0 12px 0 32px; outline: none;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button type="button" style="display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; background: #1b3e60; border: 1px solid #254c72; border-radius: 6px; color: #dfe8f1; font: inherit; font-size: 13px; cursor: pointer;">Este mês <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button type="button" style="display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; background: #1f6fbf; border: none; border-radius: 6px; color: #ffffff; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Adicionar</button>
+      </div>
+    </header>
+
+    <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+
+      <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+        <div>
+          <h1 style="margin: 0; font-size: 26px; font-weight: 300;">Investimentos</h1>
+          <div style="font-size: 13px; color: #8a97a4; margin-top: 3px;">6 posições · atualizado há 2 h</div>
+        </div>
+        <button type="button" style="display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; background: #ffffff; border: 1px solid #d7dbe0; border-radius: 6px; color: #1b2733; font: inherit; font-size: 13px; cursor: pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/></svg>
+          Sincronizar
+        </button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px;">
+        <div class="card" style="padding: 16px 18px;">
+          <div class="eyebrow">Total investido</div>
+          <div class="tnum" style="font-size: 23px; font-weight: 500; margin-top: 8px;">€38.400,00</div>
+          <div style="font-size: 12px; color: #8a97a4; margin-top: 10px;">em 6 posições</div>
+        </div>
+        <div class="card" style="padding: 16px 18px;">
+          <div class="eyebrow">Valor atual</div>
+          <div class="tnum" style="font-size: 23px; font-weight: 500; margin-top: 8px;">€41.180,00</div>
+          <div style="font-size: 12px; color: #8a97a4; margin-top: 10px;">atualizado há 2 h</div>
+        </div>
+        <div class="card" style="padding: 16px 18px;">
+          <div class="eyebrow">Retorno total</div>
+          <div class="tnum" style="font-size: 23px; font-weight: 500; margin-top: 8px; color: #1f8a5f;">+€2.780,00</div>
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 9px;">
+            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: #1f8a5f; background: #e7f4ee; padding: 2px 7px; border-radius: 4px;"><svg width="8" height="8" viewBox="0 0 12 12"><path d="M6 2 10 9H2Z" fill="currentColor"/></svg>7,2%</span>
+            <span style="font-size: 12px; color: #8a97a4;">desde o início</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.45fr 1fr; gap: 16px; align-items: start;">
+
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 14px;">
+            <div class="eyebrow">Carteira</div>
+            <div style="display: flex; gap: 8px;">
+              <button type="button" style="height: 30px; padding: 0 10px; background: #ffffff; border: 1px solid #d7dbe0; border-radius: 6px; color: #5c6b7a; font: inherit; font-size: 12px; cursor: pointer;">Tipo</button>
+              <button type="button" style="height: 30px; padding: 0 10px; background: #ffffff; border: 1px solid #d7dbe0; border-radius: 6px; color: #5c6b7a; font: inherit; font-size: 12px; cursor: pointer;">Procurar</button>
+            </div>
+          </div>
+          <table class="hold">
+            <thead>
+              <tr><th>Tipo</th><th>Ticker</th><th>Investido</th><th>Valor atual</th><th>Retorno</th><th>Início</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="color: #5c6b7a;">ETF</td><td style="color: #1b2733; font-weight: 500;">VOO</td>
+                <td class="tnum" style="color: #5c6b7a;">€12.000,00</td><td class="tnum" style="color: #1b2733;">€13.140,00</td>
+                <td class="tnum" style="color: #1f8a5f; font-weight: 500;">+€1.140,00 <span style="color: #8a97a4; font-weight: 400;">(+9,5%)</span></td>
+                <td style="color: #8a97a4;">01/2023</td>
+              </tr>
+              <tr>
+                <td style="color: #5c6b7a;">Ações</td><td style="color: #1b2733; font-weight: 500;">AAPL</td>
+                <td class="tnum" style="color: #5c6b7a;">€5.000,00</td><td class="tnum" style="color: #1b2733;">€6.180,00</td>
+                <td class="tnum" style="color: #1f8a5f; font-weight: 500;">+€1.180,00 <span style="color: #8a97a4; font-weight: 400;">(+23,6%)</span></td>
+                <td style="color: #8a97a4;">03/2024</td>
+              </tr>
+              <tr>
+                <td style="color: #5c6b7a;">Cripto</td><td style="color: #1b2733; font-weight: 500;">BTC</td>
+                <td class="tnum" style="color: #5c6b7a;">€2.000,00</td><td class="tnum" style="color: #1b2733;">€1.760,00</td>
+                <td class="tnum" style="color: #c23b3b; font-weight: 500;">−€240,00 <span style="color: #8a97a4; font-weight: 400;">(−12,0%)</span></td>
+                <td style="color: #8a97a4;">01/2025</td>
+              </tr>
+              <tr>
+                <td style="color: #5c6b7a;">ETF</td><td style="color: #1b2733; font-weight: 500;">IWDA</td>
+                <td class="tnum" style="color: #5c6b7a;">€9.400,00</td><td class="tnum" style="color: #1b2733;">€10.050,00</td>
+                <td class="tnum" style="color: #1f8a5f; font-weight: 500;">+€650,00 <span style="color: #8a97a4; font-weight: 400;">(+6,9%)</span></td>
+                <td style="color: #8a97a4;">06/2023</td>
+              </tr>
+              <tr>
+                <td style="color: #5c6b7a;">Ações</td><td style="color: #1b2733; font-weight: 500;">MSFT</td>
+                <td class="tnum" style="color: #5c6b7a;">€4.000,00</td><td class="tnum" style="color: #1b2733;">€4.320,00</td>
+                <td class="tnum" style="color: #1f8a5f; font-weight: 500;">+€320,00 <span style="color: #8a97a4; font-weight: 400;">(+8,0%)</span></td>
+                <td style="color: #8a97a4;">11/2024</td>
+              </tr>
+              <tr>
+                <td style="color: #5c6b7a;">Obrigações</td><td style="color: #1b2733; font-weight: 500;">IBGL</td>
+                <td class="tnum" style="color: #5c6b7a;">€6.000,00</td><td class="tnum" style="color: #1b2733;">€5.730,00</td>
+                <td class="tnum" style="color: #c23b3b; font-weight: 500;">−€270,00 <span style="color: #8a97a4; font-weight: 400;">(−4,5%)</span></td>
+                <td style="color: #8a97a4;">09/2023</td>
+              </tr>
+              <tr>
+                <td style="color: #1b2733; font-weight: 600; border-top: 2px solid #e5e8ec;">Total</td>
+                <td style="border-top: 2px solid #e5e8ec;"></td>
+                <td class="tnum" style="color: #1b2733; font-weight: 600; border-top: 2px solid #e5e8ec;">€38.400,00</td>
+                <td class="tnum" style="color: #1b2733; font-weight: 600; border-top: 2px solid #e5e8ec;">€41.180,00</td>
+                <td class="tnum" style="color: #1f8a5f; font-weight: 600; border-top: 2px solid #e5e8ec;">+€2.780,00 <span style="color: #8a97a4; font-weight: 400;">(+7,2%)</span></td>
+                <td style="border-top: 2px solid #e5e8ec;"></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="padding: 18px 20px;">
+          <div class="eyebrow">Alocação por tipo</div>
+          <div style="display: flex; align-items: center; gap: 18px; margin-top: 14px;">
+            <div style="position: relative; width: 150px; height: 150px; flex-shrink: 0;">
+              <svg viewBox="0 0 200 200" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#f0f1f3" stroke-width="24"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#1f6fbf" stroke-width="24" stroke-dasharray="247.62 192.20" stroke-dashoffset="0"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#4b82c4" stroke-width="24" stroke-dasharray="112.15 327.67" stroke-dashoffset="-247.62"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#1f8a5f" stroke-width="24" stroke-dasharray="61.14 378.68" stroke-dashoffset="-359.77"/>
+                <circle cx="100" cy="100" r="70" fill="none" stroke="#e0a53a" stroke-width="24" stroke-dasharray="18.91 420.91" stroke-dashoffset="-420.91"/>
+              </svg>
+              <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="font-size: 10px; color: #8a97a4;">Valor atual</div>
+                <div class="tnum" style="font-size: 16px; font-weight: 500;">€41.180</div>
+              </div>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #1f6fbf; flex-shrink: 0;"></span><span style="flex-grow: 1; color: #5c6b7a;">ETF</span><span class="tnum" style="font-weight: 500;">56%</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #4b82c4; flex-shrink: 0;"></span><span style="flex-grow: 1; color: #5c6b7a;">Ações</span><span class="tnum" style="font-weight: 500;">26%</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #1f8a5f; flex-shrink: 0;"></span><span style="flex-grow: 1; color: #5c6b7a;">Obrigações</span><span class="tnum" style="font-weight: 500;">14%</span></div>
+              <div style="display: flex; align-items: center; gap: 8px; font-size: 12.5px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #e0a53a; flex-shrink: 0;"></span><span style="flex-grow: 1; color: #5c6b7a;">Cripto</span><span class="tnum" style="font-weight: 500;">4%</span></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', system-ui, sans-serif; color: #1b2733; -webkit-font-smoothing: antialiased; }
+    a { color: #1f6fbf; text-decoration: none; }
+    a:hover { color: #1a5fa4; }
+    .tnum { font-variant-numeric: tabular-nums; font-feature-settings: 'tnum'; }
+    .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #8a97a4; }
+    .card { background: #ffffff; border: 1px solid #e5e8ec; border-radius: 8px; box-shadow: 0 1px 2px rgba(18,32,47,.05); padding: 20px; }
+    .cap { font-size: 11px; color: #8a97a4; margin-top: 3px; }
+    .sect { font-size: 13px; font-weight: 600; color: #1b2733; margin-bottom: 14px; }
+  </style>
+</helmet>
+
+<div style="background: #f5f6f8; padding: 28px 32px 36px; min-height: 1320px;">
+
+  <div style="font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: #8a97a4;">MyFinance</div>
+  <h1 style="margin: 4px 0 22px; font-size: 26px; font-weight: 300;">Fundamentos do design</h1>
+
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- COLOURS -->
+    <div class="card">
+      <div class="sect">Cores</div>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 20px;">
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #12314f; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Navy 900 · shell</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#12314F</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #1b3e60; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Navy 700 · painel</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#1B3E60</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #1f6fbf; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Azul · ação</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#1F6FBF</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #1f8a5f; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Verde · rendimento</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#1F8A5F</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #c23b3b; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Vermelho · despesa</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#C23B3B</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #e0a53a; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Dourado · destaque</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#E0A53A</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid #e5e8ec; background: #f5f6f8; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Fundo</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#F5F6F8</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #e5e8ec; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Borda</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#E5E8EC</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #1b2733; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Texto</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#1B2733</div></div></div>
+        <div style="display: flex; align-items: center; gap: 12px;"><span style="width: 40px; height: 40px; border-radius: 8px; border: 1px solid rgba(0,0,0,.06); background: #8a97a4; flex-shrink: 0;"></span><div><div style="font-size: 13px; font-weight: 500;">Texto suave</div><div class="tnum" style="font-size: 12px; color: #8a97a4;">#8A97A4</div></div></div>
+      </div>
+      <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #eef0f3;">
+        <div class="cap" style="margin: 0 0 10px;">Apoio — tintes de etiqueta, texto e bordas</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.06); background: #e7f4ee; flex-shrink: 0;"></span><span class="tnum" style="font-size: 11px; color: #8a97a4;">#E7F4EE</span></div>
+          <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.06); background: #fbebea; flex-shrink: 0;"></span><span class="tnum" style="font-size: 11px; color: #8a97a4;">#FBEBEA</span></div>
+          <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.06); background: #fbf1dd; flex-shrink: 0;"></span><span class="tnum" style="font-size: 11px; color: #8a97a4;">#FBF1DD</span></div>
+          <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.06); background: #b07d1f; flex-shrink: 0;"></span><span class="tnum" style="font-size: 11px; color: #8a97a4;">#B07D1F</span></div>
+          <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.06); background: #d7dbe0; flex-shrink: 0;"></span><span class="tnum" style="font-size: 11px; color: #8a97a4;">#D7DBE0</span></div>
+          <div style="display: flex; align-items: center; gap: 7px;"><span style="width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.06); background: #5c6b7a; flex-shrink: 0;"></span><span class="tnum" style="font-size: 11px; color: #8a97a4;">#5C6B7A</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TYPE -->
+    <div class="card">
+      <div class="sect">Tipografia</div>
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <div><div class="tnum" style="font-size: 34px; font-weight: 300; letter-spacing: -.01em; line-height: 1.1;">€48.230,15</div><div class="cap">Display · 34 / 300 · numerais tabulares</div></div>
+        <div><div style="font-size: 26px; font-weight: 300;">Visão geral</div><div class="cap">Título de página · 26 / 300</div></div>
+        <div><div class="tnum" style="font-size: 23px; font-weight: 500;">€2.409,80</div><div class="cap">Valor destaque (KPI) · 23 / 500</div></div>
+        <div><div class="eyebrow">Despesas por categoria</div><div class="cap">Eyebrow · 11 / 600 · maiúsculas · +7% tracking</div></div>
+        <div><div style="font-size: 14px; line-height: 1.5;">Corpo de texto — 14 / 400, altura de linha 1,5. Usado em tabelas, descrições e conteúdo geral.</div><div class="cap">Corpo · 14 / 400</div></div>
+        <div><div style="font-size: 12px; color: #5c6b7a;">Legenda e metadados secundários</div><div class="cap">Legenda · 12 / 400</div></div>
+      </div>
+      <div style="font-size: 12px; color: #5c6b7a; margin-top: 16px; padding-top: 14px; border-top: 1px solid #eef0f3;">Família: IBM Plex Sans (300 / 400 / 500 / 600). Fallback: Segoe UI, system-ui, sans-serif.</div>
+    </div>
+
+    <!-- COMPONENTS -->
+    <div class="card">
+      <div class="sect">Componentes</div>
+      <div style="display: flex; flex-direction: column; gap: 18px;">
+
+        <div>
+          <div class="cap" style="margin: 0 0 8px;">Botões</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <button type="button" style="height: 36px; padding: 0 16px; background: #1f6fbf; color: #ffffff; border: none; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;">Adicionar</button>
+            <button type="button" style="height: 36px; padding: 0 16px; background: #ffffff; color: #1b2733; border: 1px solid #d7dbe0; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;">Cancelar</button>
+            <button type="button" style="height: 36px; padding: 0 12px; background: transparent; color: #1f6fbf; border: none; border-radius: 6px; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;">Ver todas</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="cap" style="margin: 0 0 8px;">Controlo segmentado / seletor de período</div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="display: flex; background: #eef0f3; border: 1px solid #e5e8ec; border-radius: 6px; padding: 3px;">
+              <span style="padding: 6px 14px; font-size: 13px; font-weight: 500; color: #1b2733; background: #ffffff; border-radius: 4px; box-shadow: 0 1px 2px rgba(18,32,47,.07);">Mês</span>
+              <span style="padding: 6px 14px; font-size: 13px; color: #5c6b7a;">Trimestre</span>
+              <span style="padding: 6px 14px; font-size: 13px; color: #5c6b7a;">Ano</span>
+            </div>
+            <button type="button" style="display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; background: #ffffff; border: 1px solid #d7dbe0; border-radius: 6px; color: #1b2733; font: inherit; font-size: 13px; cursor: pointer;">Este mês <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+          </div>
+        </div>
+
+        <div>
+          <div class="cap" style="margin: 0 0 8px;">Etiquetas e indicadores</div>
+          <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: #5c6b7a; background: #f2f4f6; padding: 4px 10px; border-radius: 4px;"><span style="width: 8px; height: 8px; border-radius: 2px; background: #cf4b4b;"></span>Alimentação</span>
+            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: #1f8a5f; background: #e7f4ee; padding: 3px 8px; border-radius: 4px;"><svg width="8" height="8" viewBox="0 0 12 12"><path d="M6 2 10 9H2Z" fill="currentColor"/></svg>12%</span>
+            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: #c23b3b; background: #fbebea; padding: 3px 8px; border-radius: 4px;"><svg width="8" height="8" viewBox="0 0 12 12"><path d="M6 10 2 3h8Z" fill="currentColor"/></svg>6%</span>
+            <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: #b07d1f; background: #fbf1dd; padding: 3px 8px; border-radius: 4px;">43%</span>
+          </div>
+        </div>
+
+        <div>
+          <div class="cap" style="margin: 0 0 8px;">Barra de progresso</div>
+          <div style="height: 6px; background: #eef0f3; border-radius: 3px; overflow: hidden; max-width: 320px;"><div style="width: 65%; height: 6px; background: #e0a53a; border-radius: 3px;"></div></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PATTERNS -->
+    <div class="card">
+      <div class="sect">Padrões de dados</div>
+
+      <div style="border: 1px solid #e5e8ec; border-radius: 8px; padding: 16px 18px; max-width: 260px;">
+        <div class="eyebrow">Despesas</div>
+        <div class="tnum" style="font-size: 23px; font-weight: 500; margin-top: 8px;">€2.409,80</div>
+        <div style="display: flex; align-items: center; gap: 6px; margin-top: 9px;">
+          <span style="display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; color: #c23b3b; background: #fbebea; padding: 2px 7px; border-radius: 4px;"><svg width="8" height="8" viewBox="0 0 12 12"><path d="M6 10 2 3h8Z" fill="currentColor"/></svg>6%</span>
+          <span style="font-size: 12px; color: #8a97a4;">vs. mês anterior</span>
+        </div>
+      </div>
+
+      <div style="margin-top: 16px; border: 1px solid #e5e8ec; border-radius: 8px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th style="font-size: 11px; font-weight: 600; color: #8a97a4; text-transform: uppercase; letter-spacing: .05em; text-align: left; padding: 10px 16px; background: #fafbfc;">Data</th>
+              <th style="font-size: 11px; font-weight: 600; color: #8a97a4; text-transform: uppercase; letter-spacing: .05em; text-align: left; padding: 10px 16px; background: #fafbfc;">Descrição</th>
+              <th style="font-size: 11px; font-weight: 600; color: #8a97a4; text-transform: uppercase; letter-spacing: .05em; text-align: right; padding: 10px 16px; background: #fafbfc;">Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding: 12px 16px; font-size: 13px; color: #8a97a4;">08/09</td>
+              <td style="padding: 12px 16px; font-size: 13px; color: #1b2733;">Continente</td>
+              <td class="tnum" style="padding: 12px 16px; font-size: 13px; text-align: right; color: #c23b3b; font-weight: 500;">−€68,40</td>
+            </tr>
+            <tr>
+              <td style="padding: 12px 16px; font-size: 13px; color: #8a97a4; border-top: 1px solid #f1f3f5;">07/09</td>
+              <td style="padding: 12px 16px; font-size: 13px; color: #1b2733; border-top: 1px solid #f1f3f5;">Salário</td>
+              <td class="tnum" style="padding: 12px 16px; font-size: 13px; text-align: right; color: #1f8a5f; font-weight: 500; border-top: 1px solid #f1f3f5;">+€4.250,00</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
