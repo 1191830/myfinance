@@ -57,10 +57,28 @@ Frontend (`cd frontend`):
 - CORS is centralised in `config/WebCorsConfig` (`WebMvcConfigurer`) — allows the Vite dev
   server on both `http://localhost:5173` and `http://127.0.0.1:5173`. No `@CrossOrigin` on
   controllers.
-- Frontend, one set per resource: `model/<X>Model.ts` (API shape) +
-  `model/viewModel/<X>ViewModel.ts` (display strings, pt-PT formatting) +
-  `service/<X>Service.ts` (axios functions) + `hook/use<X>.ts` (React Query).
-  Shared components in `components/`, screens in `page/`, route table in `router/index.tsx`.
+- **Bean Validation** on the entities doubling as request bodies (`@NotNull`/`@NotBlank`/
+  `@Positive`/`@PositiveOrZero`); `exception/GlobalExceptionHandler` turns a failed `@Valid`
+  into `400` + `{field: message}`. Controllers add `@Valid` to the create/update
+  `@RequestBody` param.
+- A `@ManyToOne` field on an incoming request body is a bare Jackson-deserialized instance,
+  never loaded in the persistence context — Hibernate treats it as transient and refuses to
+  flush it as a foreign key even when its id is real. The owning service must re-resolve it
+  via its repository before `save()` (see `TransactionServiceImpl.resolveCategory`).
+- An enum column backed by a **Postgres native enum type** (`transaction_type`,
+  `transaction_frequency`) needs `@JdbcTypeCode(SqlTypes.NAMED_ENUM)` alongside
+  `@Enumerated(EnumType.STRING)`, or every insert/update fails with "column is of type X but
+  expression is of type character varying". `RecurringTransaction.type`/`.frequency` have
+  the same columns and will need the same annotation once its create endpoint is exercised.
+- Frontend, one set per resource: `model/<X>Model.ts` (API shape) + `service/<X>Service.ts`
+  (axios functions) + `hook/use<X>.ts` (React Query). Display formatting goes through the
+  shared `lib/format.ts`, not a per-resource view model. Shared components in `components/`
+  (`ui/` primitives, `forms/` modals, `layout/` shell, `charts/`), screens in `page/`, route
+  table in `router/index.tsx`.
+- Add/edit UI is a **modal**, not a route: `components/forms/<X>FormModal.tsx` takes an
+  optional `initial` prop (absent = create, present = edit) and owns its own field state,
+  reusing `ui/Modal` + `ui/FormField` + `lib/apiError.ts` (`getFieldErrors`/`getErrorMessage`
+  surface the backend's `400`/`409`).
 - UI language is **Portuguese (pt-PT)**. Currency is EUR via
   `value.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })`.
 - Roll-ups and aggregation are done on the **backend** with `BigDecimal` — never by
@@ -86,21 +104,22 @@ Generated rows are ordinary transactions and can be edited or deleted individual
 ## Status
 
 CRUD + filter endpoints for every resource plus `/api/reports/*` (net worth, month summary,
-cash flow, by-category). Frontend: all five screens (Início/Overview, Transações, Detalhe do
-mês, Investimentos, Objetivos) rebuilt on the navy Tailwind system; MUI removed. Add/edit
-flows are still stubs (the "Adicionar" buttons do nothing; delete works). Recurrence
-generator drafted (`TransactionServiceImpl.generateMonthlyTransactions`, reachable via
-`POST /api/transactions/generate`) but not scheduled or interval-aware.
+cash flow, by-category), now with Bean Validation. Frontend: all five screens (Início/
+Overview, Transações, Detalhe do mês, Investimentos, Objetivos) rebuilt on the navy Tailwind
+system; MUI removed. Add/edit/delete work end to end for transaction, investment, saving
+goal and category (modals in `components/forms/`); a Categorias page exists. Recurring
+templates have no form yet (deferred to the recurrence-interval work). Recurrence generator
+drafted (`TransactionServiceImpl.generateMonthlyTransactions`, reachable via
+`POST /api/transactions/generate`) but not scheduled or interval-aware. Definições has no
+page yet.
 
 ## Roadmap
 
-1. **Add/Edit forms** — transaction, recurring template, investment, saving goal
-   create+edit; wire the "Adicionar" buttons and per-row edit. Categorias & Definições
-   pages. Wire the Topbar search + period selector.
-2. **Recurrence intervals** — `recurrence_interval` enum (`MONTHLY`, `QUARTERLY`, `YEARLY`)
-   on `recurring_transactions`; make the generator interval-aware and add a daily
-   `@Scheduled` job (`@EnableScheduling`).
-3. **Done** — `/api/reports/*` aggregation; navy Tailwind design system across all screens.
-4. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
+1. **Recurrence engine** — `recurrence_interval` enum (`MONTHLY`, `QUARTERLY`, `YEARLY`) on
+   `recurring_transactions`; interval-aware generator + a daily `@Scheduled` job
+   (`@EnableScheduling`); build the recurring-transaction form against that final model
+   rather than today's plain `ONE_TIME`/`RECURRING` one.
+2. **Definições page**; wire the Topbar search + period selector.
+3. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
    `ticker`/`last_synced`; CSV/Excel export; Docker packaging; backend paged
    `GET /api/transactions`; tests.
