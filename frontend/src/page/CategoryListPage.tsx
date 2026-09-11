@@ -1,9 +1,14 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useCategories, useDeleteCategory } from '../hook/useCategory';
+import { useTransactions } from '../hook/useTransaction';
+import { useExpensesByCategory } from '../hook/useReports';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
+import { ProgressBar } from '../components/ui/ProgressBar';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { CategoryFormModal } from '../components/forms/CategoryFormModal';
+import { formatCurrency } from '../lib/format';
+import { latestTransactionMonth, monthBounds } from '../lib/period';
 import type { Category } from '../model/CategoryModel';
 
 const PlusIcon = () => (
@@ -27,6 +32,18 @@ const TrashIcon = () => (
 export const CategoryListPage = () => {
   const { data: categories, isLoading, isError, error } = useCategories();
   const deleteMutation = useDeleteCategory();
+  const { data: transactions } = useTransactions();
+
+  const activeMonth = useMemo(() => latestTransactionMonth(transactions), [transactions]);
+  const { first, last } = useMemo(() => monthBounds(activeMonth), [activeMonth]);
+  const { data: spending } = useExpensesByCategory(first, last);
+  const spentByCategoryId = useMemo(() => {
+    const map = new Map<string, number>();
+    (spending ?? []).forEach((s) => {
+      if (s.categoryId) map.set(s.categoryId, s.total);
+    });
+    return map;
+  }, [spending]);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Category | undefined>(undefined);
@@ -66,33 +83,55 @@ export const CategoryListPage = () => {
       {isError && <div className="text-[13px] text-expense">{(error as Error).message}</div>}
 
       {!isLoading && !isError && (
-        <Card flush className="max-w-md">
-          {(categories ?? []).map((c) => (
-            <div
-              key={c.id}
-              className="flex items-center justify-between border-t border-[#f1f3f5] px-5 py-3 first:border-t-0"
-            >
-              <span className="text-[13px] text-ink">{c.name}</span>
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => openEdit(c)}
-                  className="text-faint hover:text-brand"
-                  aria-label={`Renomear ${c.name}`}
-                >
-                  <EditIcon />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setToDelete(c)}
-                  className="text-faint hover:text-expense"
-                  aria-label={`Apagar ${c.name}`}
-                >
-                  <TrashIcon />
-                </button>
+        <Card flush className="max-w-lg">
+          {(categories ?? []).map((c) => {
+            const spent = c.id ? spentByCategoryId.get(c.id) ?? 0 : 0;
+            const hasBudget = c.monthlyBudget != null;
+            const over = hasBudget && spent > (c.monthlyBudget as number);
+            const pct = hasBudget && c.monthlyBudget! > 0 ? (spent / c.monthlyBudget!) * 100 : 0;
+            return (
+              <div
+                key={c.id}
+                className="border-t border-[#f1f3f5] px-5 py-3 first:border-t-0"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[13px] text-ink">{c.name}</span>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => openEdit(c)}
+                      className="text-faint hover:text-brand"
+                      aria-label={`Renomear ${c.name}`}
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setToDelete(c)}
+                      className="text-faint hover:text-expense"
+                      aria-label={`Apagar ${c.name}`}
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
+                </div>
+                {hasBudget && (
+                  <div className="mt-2">
+                    <ProgressBar
+                      percent={pct}
+                      height={6}
+                      color={over ? 'var(--color-expense)' : 'var(--color-gold)'}
+                    />
+                    <div
+                      className={`mt-1.5 text-xs ${over ? 'font-medium text-expense' : 'text-faint'}`}
+                    >
+                      {formatCurrency(spent)} de {formatCurrency(c.monthlyBudget as number)}
+                    </div>
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
           {!categories?.length && (
             <div className="px-5 py-6 text-center text-[13px] text-faint">Sem categorias.</div>
           )}

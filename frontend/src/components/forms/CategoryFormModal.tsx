@@ -17,12 +17,16 @@ export const CategoryFormModal = ({ open, initial, onClose }: CategoryFormModalP
   const updateMutation = useUpdateCategory();
 
   const [name, setName] = useState('');
+  const [budget, setBudget] = useState('');
   const [error, setError] = useState('');
+  const [budgetError, setBudgetError] = useState('');
 
   useEffect(() => {
     if (!open) return;
     setName(initial?.name ?? '');
+    setBudget(initial?.monthlyBudget != null ? String(initial.monthlyBudget) : '');
     setError('');
+    setBudgetError('');
   }, [open, initial]);
 
   const isEdit = !!initial?.id;
@@ -34,12 +38,20 @@ export const CategoryFormModal = ({ open, initial, onClose }: CategoryFormModalP
       setError('O nome é obrigatório');
       return;
     }
+    const budgetNum = budget.trim() ? Number(budget.replace(',', '.')) : null;
+    if (budgetNum !== null && (Number.isNaN(budgetNum) || budgetNum < 0)) {
+      setBudgetError('O orçamento deve ser positivo');
+      return;
+    }
     setError('');
+    setBudgetError('');
 
-    const payload: Category = { id: initial?.id, name: name.trim() };
+    const payload: Category = { id: initial?.id, name: name.trim(), monthlyBudget: budgetNum };
     const onError = (err: unknown) => {
       const fe = getFieldErrors(err);
-      setError(fe?.name ?? getErrorMessage(err));
+      if (fe?.name) setError(fe.name);
+      else if (fe?.monthlyBudget) setBudgetError(fe.monthlyBudget);
+      else setError(getErrorMessage(err));
     };
 
     if (isEdit) {
@@ -62,6 +74,16 @@ export const CategoryFormModal = ({ open, initial, onClose }: CategoryFormModalP
             onChange={(e) => setName(e.target.value)}
             className={formInputClass(!!error)}
             autoFocus
+          />
+        </FormField>
+        <FormField label="Orçamento mensal (€) — opcional" error={budgetError}>
+          <input
+            type="number"
+            step="0.01"
+            min="0"
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
+            className={formInputClass(!!budgetError)}
           />
         </FormField>
         <div className="mt-1.5 flex justify-end gap-2.5">

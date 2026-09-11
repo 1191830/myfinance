@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom';
 import { useCashflow, useExpensesByCategory, useMonthSummary } from '../hook/useReports';
 import { useTransactions } from '../hook/useTransaction';
 import { useSavingGoals } from '../hook/useSavingGoal';
+import { useCategories } from '../hook/useCategory';
 import { usePeriod } from '../context/PeriodContext';
+import { latestTransactionMonth, monthBounds, oneMonthBefore } from '../lib/period';
 import { Card } from '../components/ui/Card';
 import { SectionLabel } from '../components/ui/SectionLabel';
 import { StatCard } from '../components/ui/StatCard';
@@ -28,18 +30,6 @@ const hash = (s: string) => {
   return Math.abs(h);
 };
 
-const monthBounds = (ym: string) => {
-  const [y, m] = ym.split('-').map(Number);
-  const lastDay = new Date(y, m, 0).getDate();
-  const prevYm = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
-  return {
-    first: `${ym}-01`,
-    last: `${ym}-${String(lastDay).padStart(2, '0')}`,
-    prevFirst: `${prevYm}-01`,
-    prevYm,
-  };
-};
-
 const accumulate = (rows: { expense: number }[]): number[] => {
   let sum = 0;
   return rows.map((r) => {
@@ -48,24 +38,12 @@ const accumulate = (rows: { expense: number }[]): number[] => {
   });
 };
 
-const oneMonthBefore = (ym: string) => {
-  const [y, m] = ym.split('-').map(Number);
-  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
-};
-
 export const OverviewPage = () => {
   const { data: transactions } = useTransactions();
   const { period } = usePeriod();
 
   // Anchor the dashboard on the month of the most recent transaction (falls back to now).
-  const latestMonth = useMemo(() => {
-    if (transactions && transactions.length) {
-      return transactions
-        .reduce((max, t) => (t.date > max ? t.date : max), transactions[0].date)
-        .slice(0, 7);
-    }
-    return new Date().toISOString().slice(0, 7);
-  }, [transactions]);
+  const latestMonth = useMemo(() => latestTransactionMonth(transactions), [transactions]);
 
   // The Topbar's period selector can step back one month from that anchor.
   const activeMonth = period === 'PREVIOUS' ? oneMonthBefore(latestMonth) : latestMonth;
@@ -79,6 +57,7 @@ export const OverviewPage = () => {
   const { data: cashflow } = useCashflow(prevFirst, last, 'DAY');
   const { data: categories } = useExpensesByCategory(first, last);
   const { data: goals } = useSavingGoals();
+  const { data: allCategories } = useCategories();
 
   const cumulative = useMemo(() => {
     const rows = cashflow ?? [];
@@ -103,6 +82,21 @@ export const OverviewPage = () => {
   const topGoals = (goals ?? []).slice(0, 3);
   const net = summary?.net ?? 0;
 
+  const overBudget = useMemo(() => {
+    const budgetById = new Map(
+      (allCategories ?? [])
+        .filter((c) => c.id && c.monthlyBudget != null)
+        .map((c) => [c.id as string, c.monthlyBudget as number]),
+    );
+    return (categories ?? [])
+      .filter((c) => c.categoryId && budgetById.has(c.categoryId))
+      .map((c) => ({
+        name: c.categoryName,
+        over: c.total - (budgetById.get(c.categoryId as string) as number),
+      }))
+      .filter((c) => c.over > 0);
+  }, [categories, allCategories]);
+
   return (
     <div className="flex flex-col gap-5">
       <div className="flex items-end justify-between">
@@ -120,6 +114,35 @@ export const OverviewPage = () => {
           <span className="px-3.5 py-1.5 text-[13px] text-muted">Despesa</span>
         </div>
       </div>
+
+      {overBudget.length > 0 && (
+        <div className="flex items-start gap-2.5 rounded-card bg-expense-tint px-4 py-3 text-[13px] text-expense">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mt-0.5 shrink-0"
+            aria-hidden="true"
+          >
+            <path d="M12 9v4M12 17h.01" />
+            <path d="M10.3 3.9 2.5 18a1.5 1.5 0 0 0 1.3 2.2h16.4a1.5 1.5 0 0 0 1.3-2.2L13.7 3.9a1.5 1.5 0 0 0-2.6 0Z" />
+          </svg>
+          <span>
+            Acima do orçamento:{' '}
+            {overBudget.map((c, i) => (
+              <span key={c.name}>
+                {i > 0 && ', '}
+                <strong className="font-semibold">{c.name}</strong> (+{formatCurrency(c.over)})
+              </span>
+            ))}
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-4 gap-4">
         <StatCard
