@@ -15,11 +15,13 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
 
     private final RecurringTransactionRepository recurringTransactionRepository;
     private final CategoryRepository categoryRepository;
+    private final TransactionService transactionService;
 
     public RecurringTransactionServiceImpl(RecurringTransactionRepository recurringTransactionRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository, TransactionService transactionService) {
         this.recurringTransactionRepository = recurringTransactionRepository;
         this.categoryRepository = categoryRepository;
+        this.transactionService = transactionService;
     }
 
     /**
@@ -50,7 +52,11 @@ public class RecurringTransactionServiceImpl implements RecurringTransactionServ
     @Override
     public RecurringTransaction createRecurringTransaction(RecurringTransaction recurringTransaction) {
         resolveCategory(recurringTransaction);
-        return recurringTransactionRepository.save(recurringTransaction);
+        RecurringTransaction saved = recurringTransactionRepository.save(recurringTransaction);
+        // Backfill immediately - the caller shouldn't have to visit /transactions/generate
+        // separately to see a past startDate's occurrences materialize.
+        transactionService.generateMonthlyTransactions();
+        return saved;
     }
 
     @Override
