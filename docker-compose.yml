@@ -1,0 +1,21 @@
+# Local dev database for MyFinance. Backend + frontend run on the host.
+#   docker compose up -d     start (data persists in the named volume)
+#   docker compose down      stop
+#   docker compose down -v   stop and wipe the database
+services:
+  db:
+    image: postgres:16
+    container_name: myfinance-db
+    env_file: ./backend/.env          # POSTGRES_USER / POSTGRES_PASSWORD / POSTGRES_DB
+    ports:
+      - "5432:5432"
+    volumes:
+      - myfinance_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  myfinance_pgdata:
