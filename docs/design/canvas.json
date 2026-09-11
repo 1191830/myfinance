@@ -10,11 +10,12 @@
     { "file": "DetalheMes.dc.html", "x": 3120, "y": 0, "w": 1440, "h": 1020, "page": "page-1", "title": "Detalhe do mês" },
     { "file": "Investimentos.dc.html", "x": 0, "y": 1360, "w": 1440, "h": 900, "page": "page-1", "title": "Investimentos" },
     { "file": "Objetivos.dc.html", "x": 1560, "y": 1360, "w": 1440, "h": 880, "page": "page-1", "title": "Objetivos" },
+    { "file": "Categorias.dc.html", "x": 3120, "y": 1360, "w": 1440, "h": 700, "page": "page-1", "title": "Categorias" },
     { "file": "Foundations.dc.html", "x": 0, "y": 0, "w": 600, "h": 1680, "page": "page-2", "title": "Fundamentos" },
     { "file": "TransacaoModal.dc.html", "x": 0, "y": 0, "w": 640, "h": 620, "page": "page-3", "title": "Modal — Transação" },
     { "file": "InvestimentoModal.dc.html", "x": 760, "y": 0, "w": 640, "h": 620, "page": "page-3", "title": "Modal — Investimento" },
     { "file": "ObjetivoModal.dc.html", "x": 1520, "y": 0, "w": 640, "h": 540, "page": "page-3", "title": "Modal — Objetivo" },
     { "file": "CategoriaModal.dc.html", "x": 2280, "y": 0, "w": 480, "h": 340, "page": "page-3", "title": "Modal — Categoria" }
   ],
-  "launch": { "view": "canvas", "page": "page-3" }
+  "launch": { "view": "canvas", "page": "page-1" }
 }

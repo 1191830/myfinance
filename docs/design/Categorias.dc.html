@@ -1,0 +1,141 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&display=swap">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', system-ui, sans-serif; color: #1b2733; -webkit-font-smoothing: antialiased; }
+    a { color: #1f6fbf; text-decoration: none; }
+    a:hover { color: #1a5fa4; }
+    .card { background: #ffffff; border: 1px solid #e5e8ec; border-radius: 8px; box-shadow: 0 1px 2px rgba(18,32,47,.05); }
+    .navi { display: flex; align-items: center; gap: 11px; height: 40px; padding: 0 12px; border-radius: 6px; font-size: 14px; color: #b9c9da; cursor: pointer; }
+    .navi:hover { background: #16375a; color: #ffffff; }
+    .navi.on { background: #0c2942; color: #ffffff; box-shadow: inset 3px 0 0 #e0a53a; }
+    .navi svg { flex-shrink: 0; }
+    .crow { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid #f1f3f5; }
+    .crow:first-child { border-top: none; }
+    .icon-btn { color: #8a97a4; display: flex; align-items: center; }
+  </style>
+</helmet>
+
+<div style="display: flex; min-height: 620px; background: #f5f6f8;">
+
+  <aside style="width: 248px; flex-shrink: 0; background: #12314f; display: flex; flex-direction: column;">
+    <div style="display: flex; align-items: center; gap: 10px; padding: 18px 20px 14px;">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2 3 7v10l9 5 9-5V7l-9-5Z" stroke="#e0a53a" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 12.5l2.6 2.6L16 9.4" stroke="#ffffff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span style="color: #ffffff; font-size: 16px; font-weight: 600; letter-spacing: .01em;">myfinance</span>
+    </div>
+    <nav style="display: flex; flex-direction: column; padding: 6px 12px; gap: 2px;">
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Início</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1.6"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg>Transações</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 4 8-9"/><path d="M15 7h5v5"/></svg>Investimentos</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.6"/></svg>Objetivos</div>
+      <div style="height: 1px; background: #254c72; margin: 10px 12px;"></div>
+      <div class="navi on"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12V5.5A1.5 1.5 0 0 1 5.5 4H12l8 8-8 8-8-8Z"/><circle cx="8.4" cy="8.4" r="1.4"/></svg>Categorias</div>
+      <div class="navi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/></svg>Definições</div>
+    </nav>
+    <div style="flex-grow: 1;"></div>
+    <div style="margin: 12px; padding: 14px 15px; background: #1b3e60; border-radius: 8px;">
+      <div style="font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: #7f9cba;">Património líquido</div>
+      <div style="color: #ffffff; font-size: 25px; font-weight: 300; margin-top: 4px; letter-spacing: -.01em; font-variant-numeric: tabular-nums;">€48.230,15</div>
+      <div style="display: flex; gap: 14px; margin-top: 13px;">
+        <div style="flex: 1;"><div style="font-size: 11px; color: #7f9cba;">Ativos</div><div style="font-size: 13px; color: #dfe8f1; font-weight: 500; margin-top: 1px; font-variant-numeric: tabular-nums;">€61.240,00</div><div style="height: 4px; background: #0c2942; border-radius: 2px; margin-top: 6px;"><div style="width: 100%; height: 4px; background: #e0a53a; border-radius: 2px;"></div></div></div>
+        <div style="flex: 1;"><div style="font-size: 11px; color: #7f9cba;">Passivos</div><div style="font-size: 13px; color: #dfe8f1; font-weight: 500; margin-top: 1px; font-variant-numeric: tabular-nums;">€13.009,85</div><div style="height: 4px; background: #0c2942; border-radius: 2px; margin-top: 6px;"><div style="width: 21%; height: 4px; background: #6f8aa6; border-radius: 2px;"></div></div></div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-top: 1px solid #254c72;">
+      <div style="width: 30px; height: 30px; border-radius: 50%; background: #2f5680; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">RM</div>
+      <div style="flex-grow: 1; line-height: 1.25;"><div style="color: #ffffff; font-size: 13px; font-weight: 500;">Rui Marques</div><div style="color: #7f9cba; font-size: 11px;">Conta pessoal</div></div>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7f9cba" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+    </div>
+  </aside>
+
+  <div style="flex: 1; min-width: 0; display: flex; flex-direction: column;">
+    <header style="height: 56px; flex-shrink: 0; background: #12314f; display: flex; align-items: center; justify-content: space-between; padding: 0 24px;">
+      <div style="position: relative; width: 280px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7f9cba" stroke-width="1.8" stroke-linecap="round" style="position: absolute; left: 10px; top: 9px;"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input type="text" value="" placeholder="Procurar transações…" style="width: 100%; height: 34px; background: #1b3e60; border: 1px solid #254c72; border-radius: 6px; color: #ffffff; font: inherit; font-size: 13px; padding: 0 12px 0 32px; outline: none;">
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button type="button" style="display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 12px; background: #1b3e60; border: 1px solid #254c72; border-radius: 6px; color: #dfe8f1; font: inherit; font-size: 13px; cursor: pointer;">Este mês <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button type="button" style="display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; background: #1f6fbf; border: none; border-radius: 6px; color: #ffffff; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Adicionar</button>
+      </div>
+    </header>
+
+    <div style="padding: 24px; display: flex; flex-direction: column; gap: 20px;">
+
+      <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+        <div>
+          <h1 style="margin: 0; font-size: 26px; font-weight: 300;">Categorias</h1>
+          <div style="font-size: 13px; color: #8a97a4; margin-top: 3px;">7 categorias</div>
+        </div>
+        <button type="button" style="display: flex; align-items: center; gap: 7px; height: 34px; padding: 0 14px; background: #1f6fbf; border: none; border-radius: 6px; color: #ffffff; font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+          Nova categoria
+        </button>
+      </div>
+
+      <div class="card" style="max-width: 448px; overflow: hidden;">
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Casa</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Alimentação</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Transporte</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Lazer</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Serviços</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Outros</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+        <div class="crow">
+          <span style="font-size: 13px; color: #1b2733;">Saúde</span>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z"/></svg></span>
+            <span class="icon-btn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</x-dc>
+</body>
+</html>
