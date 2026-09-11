@@ -88,7 +88,7 @@ export const InvestmentListPage = () => {
 
   const num = 'tnum px-4 py-3 text-right text-[13px]';
   const numHead =
-    'bg-[#fafbfc] px-4 py-[11px] text-right text-[11px] font-semibold uppercase tracking-[0.05em] text-faint';
+    'border-b border-line-soft bg-[#fafbfc] px-4 py-[11px] text-right text-[11px] font-semibold uppercase tracking-[0.05em] text-faint';
   const textHead = numHead.replace('text-right', 'text-left');
 
   return (
@@ -161,6 +161,9 @@ export const InvestmentListPage = () => {
       {!isLoading && !isError && (
         <div className="grid grid-cols-[1.45fr_1fr] items-start gap-4">
           <Card flush>
+            <div className="px-4 py-3.5">
+              <SectionLabel>Carteira</SectionLabel>
+            </div>
             <table className="w-full border-collapse">
               <thead>
                 <tr>
@@ -260,6 +263,8 @@ export const InvestmentListPage = () => {
                 centerLabel="Valor atual"
                 centerValue={formatCurrency(totals.current)}
                 centerValueClassName="text-ink"
+                size={150}
+                strokeWidth={24}
               />
             ) : (
               <div className="mt-6 text-[13px] text-faint">Sem posições.</div>

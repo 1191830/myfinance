@@ -108,6 +108,7 @@ export const SavingGoalsListPage = () => {
           label="Progresso médio"
           value={formatPercent(totals.avg, 0)}
           valueClassName="text-gold-text"
+          progress={totals.avg}
         />
       </div>
 

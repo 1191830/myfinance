@@ -15,6 +15,13 @@ const RIGHT = 748;
 const TOP = 18;
 const BASE = 190;
 
+/** e.g. 5000 -> "€5K", 2500 -> "€2,5K", 0 -> "€0" */
+const formatK = (value: number): string => {
+  if (value <= 0) return '€0';
+  const k = Math.round((value / 1000) * 10) / 10;
+  return `€${k.toLocaleString('pt-PT', { maximumFractionDigits: 1 })}K`;
+};
+
 export const MonthlyBarChart = ({ data, onSelect }: MonthlyBarChartProps) => {
   const max =
     Math.max(1, ...data.flatMap((d) => [d.income, d.expense])) * 1.1;
@@ -28,6 +35,11 @@ export const MonthlyBarChart = ({ data, onSelect }: MonthlyBarChartProps) => {
         {gridY.map((gy) => (
           <line key={gy} x1={LEFT} y1={gy} x2={RIGHT} y2={gy} />
         ))}
+      </g>
+      <g fill="#8a97a4" fontSize="10">
+        <text x="2" y={TOP + 4}>{formatK(max)}</text>
+        <text x="0" y={gridY[1] + 4}>{formatK(max / 2)}</text>
+        <text x="8" y={BASE + 4}>€0</text>
       </g>
       {data.map((d, i) => {
         const cx = LEFT + groupW * i + groupW / 2;

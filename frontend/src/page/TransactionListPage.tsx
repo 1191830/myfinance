@@ -146,7 +146,19 @@ export const TransactionsListPage = () => {
       />
 
       <Card>
-        <SectionLabel>Rendimento vs. despesa · {year}</SectionLabel>
+        <div className="flex items-baseline justify-between">
+          <SectionLabel>Rendimento vs. despesa · {year}</SectionLabel>
+          <div className="flex gap-3.5 text-[11px] text-muted">
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-[2px] bg-income" />
+              Rendimento
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="inline-block h-2.5 w-2.5 rounded-[2px] bg-expense" />
+              Despesa
+            </span>
+          </div>
+        </div>
         <MonthlyBarChart
           data={chartData}
           onSelect={(monthIndex) =>
@@ -200,7 +212,7 @@ export const TransactionsListPage = () => {
                   {['Data', 'Descrição', 'Categoria', 'Recorrência', 'Valor', ''].map((h, i) => (
                     <th
                       key={h || 'actions'}
-                      className={`bg-[#fafbfc] px-5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.05em] text-faint ${
+                      className={`border-b border-line-soft bg-[#fafbfc] px-5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.05em] text-faint ${
                         i === 4 ? 'text-right' : 'text-left'
                       }`}
                     >

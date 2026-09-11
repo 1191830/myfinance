@@ -97,7 +97,7 @@ export const OverviewPage = () => {
     <div className="flex flex-col gap-5">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-light">Visão geral</h1>
+          <h1 className="text-[26px] font-light">Visão geral</h1>
           <div className="mt-1 text-[13px] text-faint capitalize">
             {formatMonthYear(`${activeMonth}-01`)}
           </div>
@@ -159,6 +159,11 @@ export const OverviewPage = () => {
             thisMonth={cumulative.thisMonth}
             lastMonth={cumulative.lastMonth}
           />
+          <div className="mt-2 text-xs text-faint">
+            {formatCurrency(cumulative.lastMonth[cumulative.lastMonth.length - 1] ?? 0)} gastos no
+            mesmo período do mês
+            passado.
+          </div>
         </Card>
 
         <Card>
@@ -192,7 +197,7 @@ export const OverviewPage = () => {
                 {['Data', 'Descrição', 'Categoria', 'Tipo', 'Valor'].map((h, i) => (
                   <th
                     key={h}
-                    className={`bg-[#fafbfc] px-5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.05em] text-faint ${
+                    className={`border-b border-line-soft bg-[#fafbfc] px-5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.05em] text-faint ${
                       i === 4 ? 'text-right' : 'text-left'
                     }`}
                   >

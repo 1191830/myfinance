@@ -13,7 +13,7 @@ export const PageHeader = ({ title, subtitle, above, actions }: PageHeaderProps)
   <div className="flex items-end justify-between">
     <div>
       {above}
-      <h1 className="text-2xl font-light">{title}</h1>
+      <h1 className="text-[26px] font-light">{title}</h1>
       {subtitle && <div className="mt-1 text-[13px] text-faint">{subtitle}</div>}
     </div>
     {actions && <div className="flex items-center gap-3">{actions}</div>}

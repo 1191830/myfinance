@@ -28,7 +28,7 @@ export const Modal = ({ open, onClose, children, maxWidth = 'max-w-sm' }: ModalP
       onClick={onClose}
     >
       <div
-        className={`w-full ${maxWidth} rounded-card border border-line bg-white p-5 shadow-lg`}
+        className={`w-full ${maxWidth} rounded-card border border-line bg-white p-5 shadow-[0_10px_30px_rgba(18,32,47,0.25)]`}
         onClick={(e) => e.stopPropagation()}
       >
         {children}

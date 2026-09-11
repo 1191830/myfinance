@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Card } from './Card';
 import { SectionLabel } from './SectionLabel';
 import { DeltaBadge } from './DeltaBadge';
+import { ProgressBar } from './ProgressBar';
 
 interface StatCardProps {
   label: string;
@@ -14,6 +15,8 @@ interface StatCardProps {
   deltaInvert?: boolean;
   /** small caption next to the delta, or standalone */
   caption?: ReactNode;
+  /** 0..100 — renders a gold progress bar below the value instead of a caption */
+  progress?: number;
 }
 
 export const StatCard = ({
@@ -23,10 +26,14 @@ export const StatCard = ({
   delta,
   deltaInvert,
   caption,
+  progress,
 }: StatCardProps) => (
   <Card className="px-[18px] py-4">
     <SectionLabel>{label}</SectionLabel>
     <div className={`tnum mt-2 text-[23px] font-medium ${valueClassName}`}>{value}</div>
+    {progress !== undefined && (
+      <ProgressBar percent={progress} height={8} className="mt-2.5 max-w-[160px]" />
+    )}
     {(delta !== undefined || caption) && (
       <div className="mt-[9px] flex items-center gap-1.5">
         {delta !== undefined && <DeltaBadge value={delta ?? null} invert={deltaInvert} />}

@@ -11,6 +11,9 @@ interface CategoryDonutProps {
   centerLabel: string;
   centerValue: string;
   centerValueClassName?: string;
+  /** ring diameter in px */
+  size?: number;
+  strokeWidth?: number;
 }
 
 const R = 70;
@@ -21,6 +24,8 @@ export const CategoryDonut = ({
   centerLabel,
   centerValue,
   centerValueClassName = 'text-expense',
+  size = 168,
+  strokeWidth = 26,
 }: CategoryDonutProps) => {
   const total = slices.reduce((sum, s) => sum + s.value, 0);
   let offset = 0;
@@ -34,9 +39,9 @@ export const CategoryDonut = ({
 
   return (
     <div className="mt-3.5 flex items-center gap-[18px]">
-      <div className="relative h-[168px] w-[168px] shrink-0">
+      <div className="relative shrink-0" style={{ width: size, height: size }}>
         <svg viewBox="0 0 200 200" className="h-full w-full -rotate-90">
-          <circle cx="100" cy="100" r={R} fill="none" stroke="#f0f1f3" strokeWidth="26" />
+          <circle cx="100" cy="100" r={R} fill="none" stroke="#f0f1f3" strokeWidth={strokeWidth} />
           {arcs.map((a) => (
             <circle
               key={a.name}
@@ -45,7 +50,7 @@ export const CategoryDonut = ({
               r={R}
               fill="none"
               stroke={a.color}
-              strokeWidth="26"
+              strokeWidth={strokeWidth}
               strokeDasharray={`${a.len} ${CIRC - a.len}`}
               strokeDashoffset={a.dashOffset}
             />
