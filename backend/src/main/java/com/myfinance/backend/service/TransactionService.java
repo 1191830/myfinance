@@ -31,8 +31,10 @@ public interface TransactionService {
     List<Transaction> getTransactionsByDescription(String description);
 
     /**
-     * Materializes one transaction for the current month for every active recurring
-     * template that does not already have one. Idempotent per template per month.
+     * Materializes every due occurrence for every active recurring template, from its
+     * startDate up to today, honouring the template's recurrenceInterval
+     * (monthly/quarterly/yearly) and endDate. Idempotent per template per period; also
+     * catches up on any periods missed since the last run.
      *
      * @return the number of transactions created
      */

@@ -2,6 +2,7 @@ package com.myfinance.backend.controller;
 
 import com.myfinance.backend.model.RecurringTransaction;
 import com.myfinance.backend.service.RecurringTransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class RecurringTransactionController {
     // POST create recurring transaction
     @PostMapping
     public ResponseEntity<RecurringTransaction> createRecurringTransaction(
-            @RequestBody RecurringTransaction transaction) {
+            @Valid @RequestBody RecurringTransaction transaction) {
         RecurringTransaction created = recurringTransactionService.createRecurringTransaction(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
@@ -44,7 +45,7 @@ public class RecurringTransactionController {
     // PUT update recurring transaction
     @PutMapping("/{id}")
     public ResponseEntity<RecurringTransaction> updateRecurringTransaction(@PathVariable UUID id,
-            @RequestBody RecurringTransaction transaction) {
+            @Valid @RequestBody RecurringTransaction transaction) {
         try {
             RecurringTransaction updated = recurringTransactionService.updateRecurringTransaction(id, transaction);
             return ResponseEntity.ok(updated);

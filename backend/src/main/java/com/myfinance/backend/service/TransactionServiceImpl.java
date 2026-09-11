@@ -109,42 +109,59 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     /**
-     * Generate transactions for the current month based on active recurring
-     * templates.
+     * Materializes every due occurrence, for every active recurring template, from its
+     * startDate up to today - interval-aware (monthly/quarterly/yearly), idempotent per
+     * template per period (the transactions table is the source of truth, no separate
+     * "last generated" state), bounded by endDate, and never generates into the future.
+     * Also doubles as catch-up: if this hasn't run in a while, every missed period in
+     * between gets materialized on the next call.
      */
     @Override
     @Transactional
     public int generateMonthlyTransactions() {
-        LocalDate now = LocalDate.now();
+        LocalDate today = LocalDate.now();
         List<RecurringTransaction> activeRecurring = recurringTransactionRepository.findByActiveTrue();
         int created = 0;
 
         for (RecurringTransaction template : activeRecurring) {
-            // Skip if the template has not started yet or its end date has passed
-            if (template.getStartDate() != null && now.isBefore(template.getStartDate()))
+            if (template.getStartDate() == null) {
                 continue;
-            if (template.getEndDate() != null && now.isAfter(template.getEndDate()))
-                continue;
+            }
 
-            // Check if a transaction already exists for this month
-            boolean exists = transactionRepository.findByDateBetweenOrderByDateDesc(
-                    now.withDayOfMonth(1),
-                    now.withDayOfMonth(now.lengthOfMonth())).stream()
-                    .anyMatch(t -> t.getRecurringTransaction() != null
-                            && t.getRecurringTransaction().getId().equals(template.getId()));
+            int monthsStep = switch (template.getRecurrenceInterval()) {
+                case MONTHLY -> 1;
+                case QUARTERLY -> 3;
+                case YEARLY -> 12;
+            };
 
-            if (!exists) {
-                int day = Math.min(template.getStartDate().getDayOfMonth(), now.lengthOfMonth());
-                Transaction t = new Transaction();
-                t.setRecurringTransaction(template);
-                t.setType(template.getType());
-                t.setFrequency(template.getFrequency());
-                t.setCategory(template.getCategory());
-                t.setAmount(template.getAmount());
-                t.setDate(now.withDayOfMonth(day));
-                t.setDescription(template.getDescription());
-                transactionRepository.save(t);
-                created++;
+            LocalDate periodAnchor = template.getStartDate();
+            while (!periodAnchor.isAfter(today)) {
+                if (template.getEndDate() != null && periodAnchor.isAfter(template.getEndDate())) {
+                    break;
+                }
+
+                int day = Math.min(template.getStartDate().getDayOfMonth(), periodAnchor.lengthOfMonth());
+                LocalDate occurrenceDate = periodAnchor.withDayOfMonth(day);
+                LocalDate monthStart = periodAnchor.withDayOfMonth(1);
+                LocalDate monthEnd = periodAnchor.withDayOfMonth(periodAnchor.lengthOfMonth());
+
+                boolean exists = transactionRepository.existsByRecurringTransactionAndDateBetween(
+                        template, monthStart, monthEnd);
+
+                if (!exists) {
+                    Transaction t = new Transaction();
+                    t.setRecurringTransaction(template);
+                    t.setType(template.getType());
+                    t.setFrequency(template.getFrequency());
+                    t.setCategory(template.getCategory());
+                    t.setAmount(template.getAmount());
+                    t.setDate(occurrenceDate);
+                    t.setDescription(template.getDescription());
+                    transactionRepository.save(t);
+                    created++;
+                }
+
+                periodAnchor = periodAnchor.plusMonths(monthsStep);
             }
         }
         return created;

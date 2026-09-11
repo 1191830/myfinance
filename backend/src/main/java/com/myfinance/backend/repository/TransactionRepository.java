@@ -29,4 +29,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
 
     // Buscar transações geradas a partir de um template recorrente específico
     List<Transaction> findByRecurringTransactionOrderByDateDesc(RecurringTransaction recurringTransaction);
+
+    // Idempotência do gerador: já existe uma transação deste template neste período?
+    boolean existsByRecurringTransactionAndDateBetween(RecurringTransaction recurringTransaction,
+            LocalDate start, LocalDate end);
 }
