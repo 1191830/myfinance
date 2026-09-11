@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDeleteTransaction, useTransactions } from '../hook/useTransaction';
 import { useCategories } from '../hook/useCategory';
 import { useCashflow } from '../hook/useReports';
@@ -46,6 +46,7 @@ type TypeFilter = 'ALL' | 'INCOME' | 'EXPENSE';
 
 export const TransactionsListPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { data: transactions, isLoading, isError, error } = useTransactions();
   const { data: categories } = useCategories();
   const deleteMutation = useDeleteTransaction();
@@ -53,7 +54,7 @@ export const TransactionsListPage = () => {
   const [type, setType] = useState<TypeFilter>('ALL');
   const [categoryId, setCategoryId] = useState('');
   const [frequency, setFrequency] = useState('');
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') ?? '');
   const [page, setPage] = useState(1);
   const [editing, setEditing] = useState<TransactionModel | undefined>(undefined);
   const [formOpen, setFormOpen] = useState(false);

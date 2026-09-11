@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCashflow, useExpensesByCategory, useMonthSummary } from '../hook/useReports';
 import { useTransactions } from '../hook/useTransaction';
 import { useSavingGoals } from '../hook/useSavingGoal';
+import { usePeriod } from '../context/PeriodContext';
 import { Card } from '../components/ui/Card';
 import { SectionLabel } from '../components/ui/SectionLabel';
 import { StatCard } from '../components/ui/StatCard';
@@ -47,11 +48,17 @@ const accumulate = (rows: { expense: number }[]): number[] => {
   });
 };
 
+const oneMonthBefore = (ym: string) => {
+  const [y, m] = ym.split('-').map(Number);
+  return m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`;
+};
+
 export const OverviewPage = () => {
   const { data: transactions } = useTransactions();
+  const { period } = usePeriod();
 
   // Anchor the dashboard on the month of the most recent transaction (falls back to now).
-  const activeMonth = useMemo(() => {
+  const latestMonth = useMemo(() => {
     if (transactions && transactions.length) {
       return transactions
         .reduce((max, t) => (t.date > max ? t.date : max), transactions[0].date)
@@ -59,6 +66,9 @@ export const OverviewPage = () => {
     }
     return new Date().toISOString().slice(0, 7);
   }, [transactions]);
+
+  // The Topbar's period selector can step back one month from that anchor.
+  const activeMonth = period === 'PREVIOUS' ? oneMonthBefore(latestMonth) : latestMonth;
 
   const { first, last, prevFirst, prevYm } = useMemo(
     () => monthBounds(activeMonth),

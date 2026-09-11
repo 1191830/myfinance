@@ -8,6 +8,7 @@ import { TransactionsListPage } from '../page/TransactionListPage';
 import { MonthlyTransactionsPage } from '../page/MonthDetailPage';
 import { CategoryListPage } from '../page/CategoryListPage';
 import { RecurringTransactionListPage } from '../page/RecurringTransactionListPage';
+import { DefinicoesPage } from '../page/DefinicoesPage';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -21,6 +22,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/saving-goals" element={<SavingGoalsListPage />} />
         <Route path="/categories" element={<CategoryListPage />} />
         <Route path="/recurring-transactions" element={<RecurringTransactionListPage />} />
+        <Route path="/settings" element={<DefinicoesPage />} />
         <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Route>
     </Routes>

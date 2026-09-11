@@ -1,6 +1,16 @@
 import { NavLink } from 'react-router-dom';
 import { useNetWorth } from '../../hook/useReports';
+import { useSettings } from '../../hook/useSettings';
 import { formatCurrency } from '../../lib/format';
+
+const DEFAULT_NAME = 'Rui Marques';
+
+const initialsOf = (name: string) => {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  const first = words[0]?.[0] ?? '';
+  const last = words.length > 1 ? words[words.length - 1][0] : '';
+  return (first + last).toUpperCase() || 'RM';
+};
 
 const iconProps = {
   width: 18,
@@ -77,8 +87,17 @@ const SECONDARY_NAV = [
       </svg>
     ),
   },
+  {
+    to: '/settings',
+    label: 'Definições',
+    icon: (
+      <svg {...iconProps}>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1" />
+      </svg>
+    ),
+  },
 ];
-// Definições: no page yet — added when that screen lands.
 
 const SidebarSummary = () => {
   const { data } = useNetWorth();
@@ -124,7 +143,11 @@ const SidebarSummary = () => {
   );
 };
 
-export const Sidebar = () => (
+export const Sidebar = () => {
+  const { data: settings } = useSettings();
+  const displayName = settings?.displayName ?? DEFAULT_NAME;
+
+  return (
   <aside className="flex w-[248px] shrink-0 flex-col bg-navy-900">
     <div className="flex items-center gap-2.5 px-5 pb-3.5 pt-[18px]">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -186,10 +209,10 @@ export const Sidebar = () => (
 
     <div className="flex items-center gap-2.5 border-t border-navy-700 px-[18px] py-3">
       <div className="flex h-[30px] w-[30px] items-center justify-center rounded-full bg-navy-600 text-xs font-semibold text-white">
-        RM
+        {initialsOf(displayName)}
       </div>
       <div className="flex-1 leading-tight">
-        <div className="text-[13px] font-medium text-white">Rui Marques</div>
+        <div className="text-[13px] font-medium text-white">{displayName}</div>
         <div className="text-[11px] text-[#7f9cba]">Conta pessoal</div>
       </div>
       <svg
@@ -207,4 +230,5 @@ export const Sidebar = () => (
       </svg>
     </div>
   </aside>
-);
+  );
+};
