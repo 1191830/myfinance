@@ -82,12 +82,12 @@ export const TransactionsListPage = () => {
     (cashflow ?? []).forEach((b) => {
       const m = Number(b.start.slice(5, 7)) - 1;
       if (base[m]) {
-        base[m].income = b.income;
-        base[m].expense = b.expense;
+        base[m].income = type === 'EXPENSE' ? 0 : b.income;
+        base[m].expense = type === 'INCOME' ? 0 : b.expense;
       }
     });
     return base;
-  }, [cashflow]);
+  }, [cashflow, type]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
