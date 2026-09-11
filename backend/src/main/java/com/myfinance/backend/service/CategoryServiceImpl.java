@@ -40,6 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
     public Category updateCategory(UUID id, Category category) {
         return categoryRepository.findById(id).map(existingCategory -> {
             existingCategory.setName(category.getName());
+            existingCategory.setMonthlyBudget(category.getMonthlyBudget());
             return categoryRepository.save(existingCategory);
         }).orElseThrow(() -> new IllegalArgumentException("Category not found."));
     }
