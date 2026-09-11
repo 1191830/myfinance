@@ -7,6 +7,7 @@ import { SavingGoalsListPage } from '../page/SavingGoalListPage';
 import { TransactionsListPage } from '../page/TransactionListPage';
 import { MonthlyTransactionsPage } from '../page/MonthDetailPage';
 import { CategoryListPage } from '../page/CategoryListPage';
+import { RecurringTransactionListPage } from '../page/RecurringTransactionListPage';
 
 const AppRoutes: React.FC = () => {
   return (
@@ -19,6 +20,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/investments" element={<InvestmentListPage />} />
         <Route path="/saving-goals" element={<SavingGoalsListPage />} />
         <Route path="/categories" element={<CategoryListPage />} />
+        <Route path="/recurring-transactions" element={<RecurringTransactionListPage />} />
         <Route path="*" element={<Navigate to="/inicio" replace />} />
       </Route>
     </Routes>

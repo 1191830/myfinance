@@ -67,6 +67,16 @@ const SECONDARY_NAV = [
       </svg>
     ),
   },
+  {
+    to: '/recurring-transactions',
+    label: 'Recorrências',
+    icon: (
+      <svg {...iconProps}>
+        <path d="M4 4v6h6M20 20v-6h-6" />
+        <path d="M5.5 15A8 8 0 0 0 19 8.5M18.5 9A8 8 0 0 0 5 15.5" />
+      </svg>
+    ),
+  },
 ];
 // Definições: no page yet — added when that screen lands.
 

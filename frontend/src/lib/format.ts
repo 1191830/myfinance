@@ -47,3 +47,9 @@ export const FREQUENCY_LABEL: Record<'ONE_TIME' | 'RECURRING', string> = {
   ONE_TIME: 'Único',
   RECURRING: 'Recorrente',
 };
+
+export const RECURRENCE_INTERVAL_LABEL: Record<'MONTHLY' | 'QUARTERLY' | 'YEARLY', string> = {
+  MONTHLY: 'Mensal',
+  QUARTERLY: 'Trimestral',
+  YEARLY: 'Anual',
+};

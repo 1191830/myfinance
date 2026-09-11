@@ -9,6 +9,11 @@ export const getAllTransactions = async (): Promise<TransactionModel[]> => {
   return response.data;
 };
 
+export const generateTransactions = async (): Promise<{ generated: number }> => {
+  const response = await api.post<{ generated: number }>(`${ENDPOINT}/generate`);
+  return response.data;
+};
+
 export const getTransactionById = async (id: string): Promise<TransactionModel | null> => {
   try {
     const response = await api.get<TransactionModel>(`${ENDPOINT}/${id}`);

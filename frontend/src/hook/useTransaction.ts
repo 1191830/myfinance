@@ -12,6 +12,7 @@ import {
   getTransactionsByDateRange,
   getTransactionsByFrequency,
   getTransactionsByDescription,
+  generateTransactions,
 } from '../service/TransactionService';
 
 // Lista todas as transações
@@ -112,5 +113,16 @@ export const useTransactionsByDescription = (description: string) => {
     queryKey: ['transactionsByDescription', description],
     queryFn: () => getTransactionsByDescription(description),
     enabled: !!description,
+  });
+};
+
+// Materializa manualmente as ocorrências recorrentes em falta
+export const useGenerateTransactions = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: generateTransactions,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+    },
   });
 };
