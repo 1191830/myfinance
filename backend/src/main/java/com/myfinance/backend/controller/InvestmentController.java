@@ -2,6 +2,7 @@ package com.myfinance.backend.controller;
 
 import com.myfinance.backend.model.Investment;
 import com.myfinance.backend.service.InvestmentService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,14 +39,14 @@ public class InvestmentController {
 
     // POST create new investment
     @PostMapping
-    public ResponseEntity<Investment> createInvestment(@RequestBody Investment investment) {
+    public ResponseEntity<Investment> createInvestment(@Valid @RequestBody Investment investment) {
         Investment created = investmentService.createInvestment(investment);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT update investment
     @PutMapping("/{id}")
-    public ResponseEntity<Investment> updateInvestment(@PathVariable UUID id, @RequestBody Investment investment) {
+    public ResponseEntity<Investment> updateInvestment(@PathVariable UUID id, @Valid @RequestBody Investment investment) {
         try {
             Investment updated = investmentService.updateInvestment(id, investment);
             return ResponseEntity.ok(updated);

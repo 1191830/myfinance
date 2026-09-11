@@ -3,6 +3,7 @@ package com.myfinance.backend.controller;
 import com.myfinance.backend.model.Transaction;
 import com.myfinance.backend.model.TransactionType;
 import com.myfinance.backend.service.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -40,14 +41,14 @@ public class TransactionController {
 
     // POST create transaction
     @PostMapping
-    public ResponseEntity<Transaction> createTransaction(@RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> createTransaction(@Valid @RequestBody Transaction transaction) {
         Transaction created = transactionService.createTransaction(transaction);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT update transaction
     @PutMapping("/{id}")
-    public ResponseEntity<Transaction> updateTransaction(@PathVariable UUID id, @RequestBody Transaction transaction) {
+    public ResponseEntity<Transaction> updateTransaction(@PathVariable UUID id, @Valid @RequestBody Transaction transaction) {
         try {
             Transaction updated = transactionService.updateTransaction(id, transaction);
             return ResponseEntity.ok(updated);

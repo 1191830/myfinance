@@ -2,6 +2,7 @@ package com.myfinance.backend.controller;
 
 import com.myfinance.backend.model.Category;
 import com.myfinance.backend.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +37,7 @@ public class CategoryController {
 
     // POST create new category
     @PostMapping
-    public ResponseEntity<Category> createCategory(@RequestBody Category category) {
+    public ResponseEntity<Category> createCategory(@Valid @RequestBody Category category) {
         if (categoryService.existsByNameIgnoreCase(category.getName())) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build(); // 409 Conflict
         }
@@ -46,7 +47,7 @@ public class CategoryController {
 
     // PUT update category
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable UUID id, @RequestBody Category category) {
+    public ResponseEntity<Category> updateCategory(@PathVariable UUID id, @Valid @RequestBody Category category) {
         try {
             Category updated = categoryService.updateCategory(id, category);
             return ResponseEntity.ok(updated);

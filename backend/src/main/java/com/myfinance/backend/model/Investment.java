@@ -1,6 +1,9 @@
 package com.myfinance.backend.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,17 +17,23 @@ public class Investment {
     @GeneratedValue
     private UUID id;
 
+    @NotBlank(message = "O tipo é obrigatório")
     @Column(nullable = false)
     private String type;  // ETF, Stock, Crypto, etc.
 
     private String ticker;
 
+    @NotNull(message = "O valor investido é obrigatório")
+    @PositiveOrZero(message = "O valor investido não pode ser negativo")
     @Column(name = "amount_invested", nullable = false, precision = 12, scale = 2)
     private BigDecimal amountInvested;
 
+    @NotNull(message = "O valor atual é obrigatório")
+    @PositiveOrZero(message = "O valor atual não pode ser negativo")
     @Column(name = "current_value", nullable = false, precision = 12, scale = 2)
     private BigDecimal currentValue;
 
+    @NotNull(message = "A data de início é obrigatória")
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 

@@ -1,6 +1,10 @@
 package com.myfinance.backend.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -13,15 +17,20 @@ public class SavingGoal {
     @GeneratedValue
     private UUID id;
 
+    @NotBlank(message = "O nome é obrigatório")
     @Column(nullable = false)
     private String name;
 
+    @NotNull(message = "A meta é obrigatória")
+    @Positive(message = "A meta deve ser positiva")
     @Column(name = "target_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal targetAmount;
 
+    @PositiveOrZero(message = "O valor atual não pode ser negativo")
     @Column(name = "current_amount", precision = 12, scale = 2)
     private BigDecimal currentAmount = BigDecimal.ZERO;
 
+    @NotNull(message = "A data de início é obrigatória")
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 

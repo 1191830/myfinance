@@ -1,8 +1,10 @@
 package com.myfinance.backend.service;
 
+import com.myfinance.backend.model.Category;
 import com.myfinance.backend.model.RecurringTransaction;
 import com.myfinance.backend.model.Transaction;
 import com.myfinance.backend.model.TransactionType;
+import com.myfinance.backend.repository.CategoryRepository;
 import com.myfinance.backend.repository.RecurringTransactionRepository;
 import com.myfinance.backend.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
@@ -18,11 +20,31 @@ public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final RecurringTransactionRepository recurringTransactionRepository;
+    private final CategoryRepository categoryRepository;
 
     public TransactionServiceImpl(TransactionRepository transactionRepository,
-            RecurringTransactionRepository recurringTransactionRepository) {
+            RecurringTransactionRepository recurringTransactionRepository,
+            CategoryRepository categoryRepository) {
         this.transactionRepository = transactionRepository;
         this.recurringTransactionRepository = recurringTransactionRepository;
+        this.categoryRepository = categoryRepository;
+    }
+
+    /**
+     * The category on an incoming Transaction is whatever Jackson deserialized from the
+     * request body - a bare, never-loaded Category instance. Hibernate can't tell that
+     * apart from a genuinely transient row (UUID ids have no "unsaved-value" signal) and
+     * refuses to flush it as a foreign key, so re-resolve it against the real row (or null)
+     * before saving.
+     */
+    private void resolveCategory(Transaction transaction) {
+        Category category = transaction.getCategory();
+        if (category == null || category.getId() == null) {
+            transaction.setCategory(null);
+            return;
+        }
+        transaction.setCategory(categoryRepository.findById(category.getId())
+                .orElseThrow(() -> new IllegalArgumentException("Category not found.")));
     }
 
     @Override
@@ -37,11 +59,13 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public Transaction createTransaction(Transaction transaction) {
+        resolveCategory(transaction);
         return transactionRepository.save(transaction);
     }
 
     @Override
     public Transaction updateTransaction(UUID id, Transaction transaction) {
+        resolveCategory(transaction);
         return transactionRepository.findById(id)
                 .map(existing -> {
                     existing.setType(transaction.getType());

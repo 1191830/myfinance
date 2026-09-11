@@ -2,6 +2,7 @@ package com.myfinance.backend.controller;
 
 import com.myfinance.backend.model.SavingGoal;
 import com.myfinance.backend.service.SavingGoalService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -38,14 +39,14 @@ public class SavingGoalController {
 
     // POST create new saving goal
     @PostMapping
-    public ResponseEntity<SavingGoal> createSavingGoal(@RequestBody SavingGoal savingGoal) {
+    public ResponseEntity<SavingGoal> createSavingGoal(@Valid @RequestBody SavingGoal savingGoal) {
         SavingGoal created = savingGoalService.createSavingGoal(savingGoal);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     // PUT update saving goal
     @PutMapping("/{id}")
-    public ResponseEntity<SavingGoal> updateSavingGoal(@PathVariable UUID id, @RequestBody SavingGoal savingGoal) {
+    public ResponseEntity<SavingGoal> updateSavingGoal(@PathVariable UUID id, @Valid @RequestBody SavingGoal savingGoal) {
         try {
             SavingGoal updated = savingGoalService.updateSavingGoal(id, savingGoal);
             return ResponseEntity.ok(updated);

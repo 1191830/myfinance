@@ -1,6 +1,7 @@
 package com.myfinance.backend.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 @Entity
@@ -13,6 +14,7 @@ public class Category {
     @GeneratedValue
     private UUID id;
 
+    @NotBlank(message = "O nome é obrigatório")
     @Column(nullable = false)
     private String name;
 
