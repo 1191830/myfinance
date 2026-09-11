@@ -55,7 +55,20 @@ const NAV = [
     ),
   },
 ];
-// Categorias / Definições: no pages yet — added when those screens land.
+
+const SECONDARY_NAV = [
+  {
+    to: '/categories',
+    label: 'Categorias',
+    icon: (
+      <svg {...iconProps}>
+        <path d="M4 12V5.5A1.5 1.5 0 0 1 5.5 4H12l8 8-8 8-8-8Z" />
+        <circle cx="8.4" cy="8.4" r="1.4" fill="currentColor" stroke="none" />
+      </svg>
+    ),
+  },
+];
+// Definições: no page yet — added when that screen lands.
 
 const SidebarSummary = () => {
   const { data } = useNetWorth();
@@ -124,6 +137,23 @@ export const Sidebar = () => (
 
     <nav className="flex flex-col gap-0.5 px-3 py-1.5">
       {NAV.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          className={({ isActive }) =>
+            `flex h-10 items-center gap-[11px] rounded-control px-3 text-sm ${
+              isActive
+                ? 'bg-navy-active font-medium text-white shadow-[inset_3px_0_0_var(--color-gold)]'
+                : 'text-[#b9c9da] hover:bg-[#16375a] hover:text-white'
+            }`
+          }
+        >
+          {item.icon}
+          {item.label}
+        </NavLink>
+      ))}
+      <div className="mx-3 my-2.5 h-px bg-navy-700" />
+      {SECONDARY_NAV.map((item) => (
         <NavLink
           key={item.to}
           to={item.to}

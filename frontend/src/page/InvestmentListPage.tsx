@@ -7,10 +7,17 @@ import { StatCard } from '../components/ui/StatCard';
 import { FilterSelect } from '../components/ui/FilterSelect';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { CategoryDonut, type DonutSlice } from '../components/charts/CategoryDonut';
+import { InvestmentFormModal } from '../components/forms/InvestmentFormModal';
 import { formatCurrency, formatMonthYear, formatPercent } from '../lib/format';
 import type { Investment } from '../model/InvestmentModel';
 
 const ALLOC_PALETTE = ['#1f6fbf', '#4b82c4', '#1f8a5f', '#e0a53a', '#8a97a4', '#b5333a'];
+
+const EditIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z" />
+  </svg>
+);
 
 const returnPct = (inv: Investment) =>
   inv.amountInvested > 0
@@ -24,6 +31,8 @@ export const InvestmentListPage = () => {
   const [typeFilter, setTypeFilter] = useState('');
   const [search, setSearch] = useState('');
   const [toDelete, setToDelete] = useState<Investment | null>(null);
+  const [editing, setEditing] = useState<Investment | undefined>(undefined);
+  const [formOpen, setFormOpen] = useState(false);
 
   const types = useMemo(
     () => Array.from(new Set((investments ?? []).map((i) => i.type))).sort(),
@@ -68,6 +77,14 @@ export const InvestmentListPage = () => {
     if (toDelete?.id) deleteMutation.mutate(toDelete.id);
     setToDelete(null);
   };
+  const openCreate = () => {
+    setEditing(undefined);
+    setFormOpen(true);
+  };
+  const openEdit = (i: Investment) => {
+    setEditing(i);
+    setFormOpen(true);
+  };
 
   const num = 'tnum px-4 py-3 text-right text-[13px]';
   const numHead =
@@ -89,6 +106,7 @@ export const InvestmentListPage = () => {
             </button>
             <button
               type="button"
+              onClick={openCreate}
               className="flex h-[34px] items-center gap-[7px] rounded-control bg-brand px-3.5 text-[13px] font-medium text-white hover:bg-brand-strong"
             >
               <svg
@@ -172,25 +190,35 @@ export const InvestmentListPage = () => {
                       </td>
                       <td className={`${num} text-faint`}>{formatMonthYear(i.startDate)}</td>
                       <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setToDelete(i)}
-                          className="text-faint hover:text-expense"
-                          aria-label={`Apagar ${i.ticker ?? i.type}`}
-                        >
-                          <svg
-                            width="15"
-                            height="15"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="1.8"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
+                        <div className="flex items-center justify-end gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(i)}
+                            className="text-faint hover:text-brand"
+                            aria-label={`Editar ${i.ticker ?? i.type}`}
                           >
-                            <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
-                          </svg>
-                        </button>
+                            <EditIcon />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setToDelete(i)}
+                            className="text-faint hover:text-expense"
+                            aria-label={`Apagar ${i.ticker ?? i.type}`}
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
+                            </svg>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -239,6 +267,8 @@ export const InvestmentListPage = () => {
           </Card>
         </div>
       )}
+
+      <InvestmentFormModal open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
 
       <ConfirmDialog
         open={!!toDelete}

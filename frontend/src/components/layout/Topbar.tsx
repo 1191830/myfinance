@@ -1,6 +1,9 @@
-// Visual-only for now: search, period selector and "Adicionar" get wired up
-// when the add/edit flows land.
-export const Topbar = () => (
+// Search and the period selector are still visual only.
+interface TopbarProps {
+  onAdd: () => void;
+}
+
+export const Topbar = ({ onAdd }: TopbarProps) => (
   <header className="flex h-14 shrink-0 items-center justify-between bg-navy-900 px-6">
     <div className="relative w-[280px]">
       <svg
@@ -45,6 +48,7 @@ export const Topbar = () => (
       </button>
       <button
         type="button"
+        onClick={onAdd}
         className="flex h-[34px] items-center gap-[7px] rounded-control bg-brand px-3.5 text-[13px] font-medium text-white hover:bg-brand-strong"
       >
         <svg

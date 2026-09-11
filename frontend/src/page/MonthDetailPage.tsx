@@ -1,11 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useTransactions } from '../hook/useTransaction';
+import { useDeleteTransaction, useTransactions } from '../hook/useTransaction';
 import { useMonthSummary } from '../hook/useReports';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { SectionLabel } from '../components/ui/SectionLabel';
 import { StatCard } from '../components/ui/StatCard';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { TransactionFormModal } from '../components/forms/TransactionFormModal';
 import {
   FREQUENCY_LABEL,
   formatCurrency,
@@ -29,11 +31,28 @@ const monthTitle = (year: number, month: number) => {
   return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
-const Row = ({ t }: { t: TransactionModel }) => {
+const EditIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z" />
+  </svg>
+);
+const TrashIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
+  </svg>
+);
+
+interface RowProps {
+  t: TransactionModel;
+  onEdit: (t: TransactionModel) => void;
+  onDelete: (t: TransactionModel) => void;
+}
+
+const Row = ({ t, onEdit, onDelete }: RowProps) => {
   const income = t.type === 'INCOME';
   const name = t.category?.name ?? 'Sem categoria';
   return (
-    <div className="flex items-center gap-3 border-t border-[#f1f3f5] py-[13px] first:border-t-0">
+    <div className="group flex items-center gap-3 border-t border-[#f1f3f5] py-[13px] first:border-t-0">
       <span
         className="h-2 w-2 shrink-0 rounded-[2px]"
         style={{ background: income ? 'var(--color-income)' : PALETTE[hash(name) % PALETTE.length] }}
@@ -49,6 +68,14 @@ const Row = ({ t }: { t: TransactionModel }) => {
       >
         {formatSignedCurrency(income ? t.amount : -t.amount)}
       </span>
+      <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+        <button type="button" onClick={() => onEdit(t)} className="text-faint hover:text-brand" aria-label="Editar">
+          <EditIcon />
+        </button>
+        <button type="button" onClick={() => onDelete(t)} className="text-faint hover:text-expense" aria-label="Apagar">
+          <TrashIcon />
+        </button>
+      </div>
     </div>
   );
 };
@@ -63,6 +90,11 @@ export const MonthlyTransactionsPage = () => {
 
   const { data: summary } = useMonthSummary(`${year}-${mm}`);
   const { data: transactions } = useTransactions();
+  const deleteMutation = useDeleteTransaction();
+
+  const [editing, setEditing] = useState<TransactionModel | undefined>(undefined);
+  const [formOpen, setFormOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<TransactionModel | null>(null);
 
   const monthTx = useMemo(
     () =>
@@ -77,6 +109,15 @@ export const MonthlyTransactionsPage = () => {
   const goMonth = (delta: number) => {
     const d = new Date(year, month - 1 + delta, 1);
     navigate(`/transactions/monthly?year=${d.getFullYear()}&month=${d.getMonth() + 1}`);
+  };
+
+  const openEdit = (t: TransactionModel) => {
+    setEditing(t);
+    setFormOpen(true);
+  };
+  const confirmDelete = () => {
+    if (toDelete?.id) deleteMutation.mutate(toDelete.id);
+    setToDelete(null);
   };
 
   const net = summary?.net ?? 0;
@@ -171,7 +212,7 @@ export const MonthlyTransactionsPage = () => {
             <span className="text-xs text-faint">{receitas.length} movimento(s)</span>
           </div>
           {receitas.length ? (
-            receitas.map((t) => <Row key={t.id} t={t} />)
+            receitas.map((t) => <Row key={t.id} t={t} onEdit={openEdit} onDelete={setToDelete} />)
           ) : (
             <div className="py-4 text-[13px] text-faint">Sem receitas neste mês.</div>
           )}
@@ -183,12 +224,23 @@ export const MonthlyTransactionsPage = () => {
             <span className="text-xs text-faint">{despesas.length} movimento(s)</span>
           </div>
           {despesas.length ? (
-            despesas.map((t) => <Row key={t.id} t={t} />)
+            despesas.map((t) => <Row key={t.id} t={t} onEdit={openEdit} onDelete={setToDelete} />)
           ) : (
             <div className="py-4 text-[13px] text-faint">Sem despesas neste mês.</div>
           )}
         </Card>
       </div>
+
+      <TransactionFormModal open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
+      <ConfirmDialog
+        open={!!toDelete}
+        title="Apagar transação"
+        message={`"${toDelete?.description ?? ''}" será removida permanentemente.`}
+        confirmLabel="Apagar"
+        destructive
+        onConfirm={confirmDelete}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 };

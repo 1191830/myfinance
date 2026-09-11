@@ -5,10 +5,10 @@ export interface TransactionModel {
   id: string;
   type: TransactionType;
   frequency: Frequency;
-  category: {
+  category?: {
     id: string;
     name: string;
-  };
+  } | null;
   amount: number
   date: string; // ISO string
   description: string;

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTransactions } from '../hook/useTransaction';
+import { useDeleteTransaction, useTransactions } from '../hook/useTransaction';
 import { useCategories } from '../hook/useCategory';
 import { useCashflow } from '../hook/useReports';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -9,12 +9,26 @@ import { SectionLabel } from '../components/ui/SectionLabel';
 import { Segmented } from '../components/ui/Segmented';
 import { FilterSelect } from '../components/ui/FilterSelect';
 import { Pagination } from '../components/ui/Pagination';
+import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { TransactionFormModal } from '../components/forms/TransactionFormModal';
 import { MonthlyBarChart, type MonthlyDatum } from '../components/charts/MonthlyBarChart';
 import {
   FREQUENCY_LABEL,
   formatDayMonth,
   formatSignedCurrency,
 } from '../lib/format';
+import type { TransactionModel } from '../model/TransactionModel';
+
+const EditIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z" />
+  </svg>
+);
+const TrashIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" />
+  </svg>
+);
 
 const PALETTE = ['#b5333a', '#cf4b4b', '#df6a5a', '#e88a6b', '#efab80', '#e0a53a', '#cbb6a6'];
 const hash = (s: string) => {
@@ -34,12 +48,16 @@ export const TransactionsListPage = () => {
   const navigate = useNavigate();
   const { data: transactions, isLoading, isError, error } = useTransactions();
   const { data: categories } = useCategories();
+  const deleteMutation = useDeleteTransaction();
 
   const [type, setType] = useState<TypeFilter>('ALL');
   const [categoryId, setCategoryId] = useState('');
   const [frequency, setFrequency] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [editing, setEditing] = useState<TransactionModel | undefined>(undefined);
+  const [formOpen, setFormOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<TransactionModel | null>(null);
 
   const year = useMemo(() => {
     if (transactions && transactions.length) {
@@ -98,6 +116,15 @@ export const TransactionsListPage = () => {
   const onFilterChange = <T,>(setter: (v: T) => void) => (v: T) => {
     setter(v);
     setPage(1);
+  };
+
+  const openEdit = (t: TransactionModel) => {
+    setEditing(t);
+    setFormOpen(true);
+  };
+  const confirmDelete = () => {
+    if (toDelete?.id) deleteMutation.mutate(toDelete.id);
+    setToDelete(null);
   };
 
   return (
@@ -170,9 +197,9 @@ export const TransactionsListPage = () => {
             <table className="w-full border-collapse">
               <thead>
                 <tr>
-                  {['Data', 'Descrição', 'Categoria', 'Recorrência', 'Valor'].map((h, i) => (
+                  {['Data', 'Descrição', 'Categoria', 'Recorrência', 'Valor', ''].map((h, i) => (
                     <th
-                      key={h}
+                      key={h || 'actions'}
                       className={`bg-[#fafbfc] px-5 py-[11px] text-[11px] font-semibold uppercase tracking-[0.05em] text-faint ${
                         i === 4 ? 'text-right' : 'text-left'
                       }`}
@@ -211,12 +238,32 @@ export const TransactionsListPage = () => {
                       >
                         {formatSignedCurrency(income ? t.amount : -t.amount)}
                       </td>
+                      <td className="whitespace-nowrap px-5 py-3 text-right">
+                        <div className="flex items-center justify-end gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => openEdit(t)}
+                            className="text-faint hover:text-brand"
+                            aria-label="Editar"
+                          >
+                            <EditIcon />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setToDelete(t)}
+                            className="text-faint hover:text-expense"
+                            aria-label="Apagar"
+                          >
+                            <TrashIcon />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   );
                 })}
                 {!rows.length && (
                   <tr>
-                    <td colSpan={5} className="px-5 py-6 text-center text-[13px] text-faint">
+                    <td colSpan={6} className="px-5 py-6 text-center text-[13px] text-faint">
                       Nenhuma transação corresponde aos filtros.
                     </td>
                   </tr>
@@ -233,6 +280,17 @@ export const TransactionsListPage = () => {
           </>
         )}
       </Card>
+
+      <TransactionFormModal open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
+      <ConfirmDialog
+        open={!!toDelete}
+        title="Apagar transação"
+        message={`"${toDelete?.description ?? ''}" será removida permanentemente.`}
+        confirmLabel="Apagar"
+        destructive
+        onConfirm={confirmDelete}
+        onCancel={() => setToDelete(null)}
+      />
     </div>
   );
 };

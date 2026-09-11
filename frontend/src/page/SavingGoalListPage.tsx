@@ -5,6 +5,7 @@ import { Card } from '../components/ui/Card';
 import { StatCard } from '../components/ui/StatCard';
 import { ProgressBar } from '../components/ui/ProgressBar';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
+import { SavingGoalFormModal } from '../components/forms/SavingGoalFormModal';
 import {
   formatCurrency,
   formatCurrencyShort,
@@ -12,6 +13,12 @@ import {
   formatPercent,
 } from '../lib/format';
 import type { SavingGoal } from '../model/SavingGoalModel';
+
+const EditIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z" />
+  </svg>
+);
 
 const monthsUntil = (iso?: string | null) => {
   if (!iso) return null;
@@ -28,6 +35,8 @@ export const SavingGoalsListPage = () => {
 
   const [search, setSearch] = useState('');
   const [toDelete, setToDelete] = useState<SavingGoal | null>(null);
+  const [editing, setEditing] = useState<SavingGoal | undefined>(undefined);
+  const [formOpen, setFormOpen] = useState(false);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -51,6 +60,14 @@ export const SavingGoalsListPage = () => {
     if (toDelete?.id) deleteMutation.mutate(toDelete.id);
     setToDelete(null);
   };
+  const openCreate = () => {
+    setEditing(undefined);
+    setFormOpen(true);
+  };
+  const openEdit = (g: SavingGoal) => {
+    setEditing(g);
+    setFormOpen(true);
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -60,6 +77,7 @@ export const SavingGoalsListPage = () => {
         actions={
           <button
             type="button"
+            onClick={openCreate}
             className="flex h-[34px] items-center gap-[7px] rounded-control bg-brand px-3.5 text-[13px] font-medium text-white hover:bg-brand-strong"
           >
             <svg
@@ -128,6 +146,14 @@ export const SavingGoalsListPage = () => {
                     </span>
                     <button
                       type="button"
+                      onClick={() => openEdit(g)}
+                      className="text-faint hover:text-brand"
+                      aria-label={`Editar ${g.name}`}
+                    >
+                      <EditIcon />
+                    </button>
+                    <button
+                      type="button"
                       onClick={() => setToDelete(g)}
                       className="text-faint hover:text-expense"
                       aria-label={`Apagar ${g.name}`}
@@ -172,6 +198,8 @@ export const SavingGoalsListPage = () => {
           )}
         </div>
       )}
+
+      <SavingGoalFormModal open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
 
       <ConfirmDialog
         open={!!toDelete}
