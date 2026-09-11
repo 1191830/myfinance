@@ -87,7 +87,8 @@ Frontend (`cd frontend`):
 
 ## Domain model
 
-- `categories(id, name)` — case-insensitive unique `name`.
+- `categories(id, name, monthly_budget?)` — case-insensitive unique `name`; budget is
+  optional, no limit until one is set.
 - `recurring_transactions` — a template: `type`, `frequency`, `recurrence_interval`
   (`MONTHLY`/`QUARTERLY`/`YEARLY`), `category`, `amount`, `description`, `start_date` (first
   occurrence), `end_date?` (last occurrence), `active`.
@@ -121,10 +122,11 @@ Definições page exists (editable display name backed by a single-row `settings
 read-only currency/locale, shortcuts to Categorias/Recorrências). Topbar search navigates to
 Transações with that term pre-filled; the period selector is a real dropdown but only
 changes Overview (Este mês / Mês passado — Overview's KPIs are inherently month-shaped, so
-no year option).
+no year option). Categories carry an optional `monthlyBudget`; Categorias shows a progress
+bar (spend vs. budget, for whichever month Overview is anchored on — see `lib/period.ts`)
+and Overview surfaces a warning banner for any category over budget that month.
 
 ## Roadmap
 
-1. **Deferred** — per-category budget limits + overrun alerts; investment price sync via
-   `ticker`/`last_synced`; CSV/Excel export; Docker packaging; backend paged
-   `GET /api/transactions`; tests.
+1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
+   Docker packaging; backend paged `GET /api/transactions`; tests.

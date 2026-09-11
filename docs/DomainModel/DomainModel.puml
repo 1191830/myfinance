@@ -36,6 +36,7 @@ class RecurringTransaction {
 class Category {
   +UUID id
   +String name
+  +Decimal monthlyBudget
 }
 
 class Investment {

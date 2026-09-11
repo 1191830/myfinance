@@ -9,7 +9,8 @@ CREATE TYPE recurrence_interval AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
 
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL
+    name TEXT NOT NULL,
+    monthly_budget NUMERIC(12,2) -- optional per-category spending limit
 );
 
 -- Recurring transactions template
