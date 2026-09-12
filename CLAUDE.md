@@ -32,7 +32,16 @@ up **before** the backend; `config/DatabaseInitializer` does not create it. Rese
 Backend (`cd backend`, needs a reachable Postgres per `.env`):
 
 - `./mvnw spring-boot:run`
-- `./mvnw test` — only `contextLoads` today; still needs a live Postgres
+- `./mvnw test -Dtest='TransactionServiceImplTest,RecurringTransactionServiceImplTest'` —
+  the unit tests (Mockito, no DB, fast); pass on any machine.
+- `./mvnw test` — also runs `BackendApplicationTests` and the `*IT` integration tests, which
+  spin up their own Postgres via Testcontainers (no manual `docker compose up`/dev DB
+  needed) — **requires Testcontainers to actually reach your Docker daemon**. On Windows
+  with Docker Desktop, if you see `Could not find a valid Docker environment` with a
+  malformed/empty `/info` response over the named pipe, enable Docker Desktop → Settings →
+  General → "Expose daemon on tcp://localhost:2375 without TLS" (a real security-relevant
+  setting — only turn it on if you're comfortable with unauthenticated local Docker API
+  access) or set `DOCKER_HOST` to a WSL2 distro's `docker.sock`.
 - `./mvnw -DskipTests package` → `target/backend-0.0.1-SNAPSHOT.jar`
 
 Frontend (`cd frontend`):
@@ -124,9 +133,17 @@ Transações with that term pre-filled; the period selector is a real dropdown b
 changes Overview (Este mês / Mês passado — Overview's KPIs are inherently month-shaped, so
 no year option). Categories carry an optional `monthlyBudget`; Categorias shows a progress
 bar (spend vs. budget, for whichever month Overview is anchored on — see `lib/period.ts`)
-and Overview surfaces a warning banner for any category over budget that month.
+and Overview surfaces a warning banner for any category over budget that month. Backend
+tests: unit tests (Mockito) cover the recurrence generator and the category-resolution fix
+in isolation, and Testcontainers-backed integration tests cover the same flows end to end
+through the real REST API — the unit tests are verified passing; the integration tests
+compile clean but are not yet verified in this dev environment, see Run/build above.
+Frontend has no test tooling yet.
 
 ## Roadmap
 
-1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
-   Docker packaging; backend paged `GET /api/transactions`; tests.
+1. **Verify the Testcontainers integration tests** once Docker access is sorted on a given
+   machine (see Run/build) — they compile but aren't yet confirmed passing anywhere.
+2. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
+   Docker packaging; backend paged `GET /api/transactions`; frontend tests (Vitest +
+   React Testing Library, deliberately left out of this round).
