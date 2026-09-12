@@ -10,6 +10,7 @@ import com.myfinance.backend.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -21,13 +22,15 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final RecurringTransactionRepository recurringTransactionRepository;
     private final CategoryRepository categoryRepository;
+    private final Clock clock;
 
     public TransactionServiceImpl(TransactionRepository transactionRepository,
             RecurringTransactionRepository recurringTransactionRepository,
-            CategoryRepository categoryRepository) {
+            CategoryRepository categoryRepository, Clock clock) {
         this.transactionRepository = transactionRepository;
         this.recurringTransactionRepository = recurringTransactionRepository;
         this.categoryRepository = categoryRepository;
+        this.clock = clock;
     }
 
     /**
@@ -119,7 +122,7 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public int generateMonthlyTransactions() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(clock);
         List<RecurringTransaction> activeRecurring = recurringTransactionRepository.findByActiveTrue();
         int created = 0;
 
