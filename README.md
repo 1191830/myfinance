@@ -1,248 +1,99 @@
-# 💰 PersonalFinanceApp
-
-A personal finance management application to track income, expenses, savings, and investments. Designed for local use with a remote PostgreSQL database (Supabase) and a modern graphical user interface built with React.
-
----
-
-## 📋 Core Features
-
-- Track income and expenses (recurring and one-time)
-- Monitor investments and saving goals
-- Interactive dashboards and monthly reports
-- Budget category breakdowns
-- _(Future)_ Export data to Excel or CSV
-- _(Optional)_ Budget overrun alerts
-- _(Future)_ Automatic investment value tracking (via ticker)
-
----
-
-## 🧱 Tech Stack
-
-| Layer     | Technology            | Purpose                       |
-| --------- | --------------------- | ----------------------------- |
-| Frontend  | React (Vite)          | GUI and dashboards            |
-| Backend   | Java + Spring Boot    | Business logic + API server   |
-| Database  | Supabase (PostgreSQL) | Remote data persistence       |
-| Dev Tools | Docker (future)       | Local dev, testing, packaging |
-
----
+# MyFinance
 
-## 🧩 Architecture
-
-+------------------+ HTTP +---------------------+ SQL/API +------------------------+
-| React Frontend | <----------------> | Spring Boot Backend | <---------------> | Supabase (PostgreSQL) |
-| (Local UI) | | (Executable/Local) | | (Cloud DB) |
-+------------------+ +---------------------+ +------------------------+
-
-- React communicates with the local Spring Boot backend
-- Spring Boot communicates with the Supabase database
-- The app runs locally but relies on a cloud database
-- Internet connection required for sync
+Single-user personal finance tracker: transactions, per-category budgets, investments,
+savings goals, and recurring transactions with automatic backfill.
 
----
+## Tech stack
 
-## 📁 Project Structure (Proposed)
+- **Backend**: Java 17, Spring Boot 3.5.4, Spring Data JPA, Flyway, PostgreSQL 16
+- **Frontend**: React 19, Vite 7, TypeScript, Tailwind CSS v4, TanStack Query, axios,
+  react-router-dom v7
 
-personal-finance-app/
-│
-├── backend/ # Spring Boot API
-│ └── src/main/java/...
-│
-├── frontend/ # React App (Vite)
-│ └── src/
-│ ├── components/
-│ ├── pages/
-│ └── services/
-│
-├── docs/ # Documentation, models
-├── docker/ # Dockerfiles and docker-compose
-└── README.md
+## Prerequisites
 
----
+- JDK 17
+- Node.js (for Vite 7 / React 19)
+- Docker Desktop — runs the dev Postgres (via `docker-compose.yml`) and is also used by
+  the backend's Testcontainers-based integration tests
 
-## 🧾 Domain Model
+## Setup
 
-### 🧾 Transaction
+```bash
+cp backend/.env.example backend/.env   # adjust values if needed
+docker compose up -d                    # starts Postgres 16 on :5432
+```
 
-| Field        | Type                          | Description                                          |
-| ------------ | ----------------------------- | --------------------------------------------------- |
-| id           | UUID                          | Unique identifier                                   |
-| type         | ENUM('INCOME', 'EXPENSE')     | Defines the nature of the transaction               |
-| frequency    | ENUM('ONE_TIME', 'RECURRING') | One-time or recurring                               |
-| category_id  | UUID (FK)                     | Link to category                                    |
-| recurring_id | UUID (FK, nullable)           | Link to the `RecurringTransaction` that generated it |
-| amount       | DECIMAL                       | Transaction amount                                  |
-| date         | DATE                          | Date of transaction                                 |
-| description  | TEXT                          | Optional description                                |
+`backend/.env` holds `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`,
+`POSTGRES_PASSWORD` — read by both the Spring Boot app (via `spring-dotenv`) and
+`docker-compose.yml` (env_file), so one file configures both. The compose file starts a
+single `db` service (container `myfinance-db`, named volume `myfinance_pgdata` so data
+survives `docker compose down`; use `docker compose down -v` to wipe it).
 
----
+## Running the backend
 
-### 🔁 RecurringTransaction
+```bash
+cd backend
+./mvnw spring-boot:run
+```
 
-A template. A generator materializes one concrete `Transaction` per period per active
-template (idempotent per template per period, honouring `start_date` day-of-month and
-`end_date`). Generated transactions can then be edited or deleted individually.
+Serves the API on `http://localhost:8080/api`. Flyway migrations
+(`src/main/resources/db/migration`) run automatically on boot — the schema is fully
+Flyway-owned (`ddl-auto=none`), no manual DDL needed.
 
-| Field       | Type                          | Description                          |
-| ----------- | ----------------------------- | ----------------------------------- |
-| id          | UUID                          | Unique identifier                   |
-| type        | ENUM('INCOME', 'EXPENSE')     | Nature of the recurring entry       |
-| frequency   | ENUM('ONE_TIME', 'RECURRING') | Always `RECURRING`                  |
-| category_id | UUID (FK)                     | Link to category                    |
-| amount      | DECIMAL                       | Amount of each occurrence           |
-| description | TEXT                          | Optional description                |
-| start_date  | DATE                          | First occurrence                    |
-| end_date    | DATE (nullable)               | Optional last occurrence            |
-| active      | BOOLEAN                       | Cancels future occurrences when off |
+## Running the frontend
 
----
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-### 🗂️ Category
+Vite dev server on `http://localhost:5173`. The API base URL is currently hardcoded to
+`http://localhost:8080/api` in `src/config/axios.ts` (no `.env`/`VITE_API_URL` yet).
 
-| Field | Type | Description         |
-| ----- | ---- | ------------------- |
-| id    | UUID | Unique identifier   |
-| name  | TEXT | Category label name |
+## Running tests
 
----
+Backend only — the frontend has no test tooling yet.
 
-### 💹 Investment
+```bash
+cd backend
 
-| Field           | Type      | Description                                             |
-| --------------- | --------- | ------------------------------------------------------- |
-| id              | UUID      | Unique identifier                                       |
-| type            | TEXT      | Investment type (e.g. ETF, Stock, Real Estate)          |
-| ticker          | TEXT      | Ticker symbol (e.g. AAPL, BTC) _(optional)_             |
-| amount_invested | DECIMAL   | Initial investment amount                               |
-| current_value   | DECIMAL   | Most recent known value                                 |
-| start_date      | DATE      | Start or purchase date                                  |
-| notes           | TEXT      | Optional comments or details                            |
-| last_synced     | TIMESTAMP | When value was last updated (future automation support) |
+# Fast unit tests only (Mockito, no DB) — pass on any machine
+./mvnw test -Dtest='TransactionServiceImplTest,RecurringTransactionServiceImplTest'
 
-> ⚙️ Future enhancement: fetch latest value via market API using `ticker`
+# Full suite: unit tests + BackendApplicationTests + the three *IT controller
+# integration tests, which each spin up their own Postgres via Testcontainers
+# automatically (no need to `docker compose up` first — but Docker must be running)
+./mvnw test
+```
 
----
+If you're on Docker Engine 29+, note that `backend/src/test/resources/docker-java.properties`
+pins the Testcontainers Docker API client to a version Docker 29 still serves correctly —
+Docker 29 bumped its API version in a way that broke Testcontainers 1.x's daemon detection
+([testcontainers-java#11212](https://github.com/testcontainers/testcontainers-java/issues/11212)).
+This is already fixed in the repo; it's only worth knowing about if you ever bump the
+Testcontainers version.
 
-### 💰 SavingGoal
+## Project structure
 
-| Field          | Type    | Description            |
-| -------------- | ------- | ---------------------- |
-| id             | UUID    | Unique identifier      |
-| name           | TEXT    | Goal name              |
-| target_amount  | DECIMAL | Target value to reach  |
-| current_amount | DECIMAL | Current progress       |
-| start_date     | DATE    | When saving started    |
-| end_date       | DATE    | Target completion date |
+```
+backend/    Spring Boot API — src/main/java/com/myfinance/backend, Flyway migrations in
+            src/main/resources/db/migration
+frontend/   React app — src/pages, src/components, src/context, src/lib
+docker-compose.yml   Dev Postgres
+CLAUDE.md   Detailed architecture notes, current status, and roadmap
+```
 
----
+## Features
 
-## 🗄️ Supabase Database Structure
+- Transactions (income/expense), one-time or recurring with interval (monthly/quarterly/
+  yearly), day-of-month, and optional end date — recurring templates auto-backfill every
+  due month up to today on creation and on a daily scheduled job
+- Categories with an optional monthly budget and spend-vs-budget progress
+- Investments and savings goals
+- Reports: net worth, month summary, cash flow, spend by category
+- Definições (settings) page: editable display name, currency/locale, shortcuts
 
-### Tables
+## Status and roadmap
 
-| Table Name               | Description                                       |
-| ------------------------ | ------------------------------------------------ |
-| `transactions`           | All income and expense records                   |
-| `recurring_transactions` | Templates for recurring income/expense entries   |
-| `categories`             | Simple labels for classifying transactions       |
-| `investments`            | Financial assets and market instruments          |
-| `saving_goals`           | Goals and progress toward saving targets         |
-
-### Relationships
-
-- `transactions.category_id → categories.id` (`ON DELETE SET NULL`)
-- `transactions.recurring_id → recurring_transactions.id` (`ON DELETE SET NULL`)
-- `recurring_transactions.category_id → categories.id` (`ON DELETE SET NULL`)
-- Transaction type defines the context, not the category
-
----
-
-## 🏃 Running Locally
-
-**Prerequisites:** JDK 17, Node 20+ (with npm), Docker.
-
-1. **Environment** — copy the template (skip if `backend/.env` already exists):
-
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
-
-2. **Database** — start PostgreSQL (creates the role and `personal_finance_db` from
-   `backend/.env`):
-
-   ```bash
-   docker compose up -d
-   docker compose ps        # wait until "db" is healthy
-   ```
-
-3. **Backend** — from `backend/` (Windows PowerShell: `.\mvnw.cmd spring-boot:run`):
-
-   ```bash
-   cd backend && ./mvnw spring-boot:run
-   ```
-
-   Flyway applies `V1`+`V2` on boot. API: `http://localhost:8080/api`.
-
-4. **Frontend** — from `frontend/`:
-
-   ```bash
-   cd frontend && npm install && npm run dev
-   ```
-
-   UI: `http://localhost:5173` (calls the API via the baseURL in `src/config/axios.ts`).
-
-**Start order:** database → backend → frontend. `DatabaseInitializer` does **not** create
-the database — `docker compose` does.
-
-**Reset the database:** `docker compose down -v && docker compose up -d` (the next backend
-boot re-seeds). This is also the fix for a Flyway checksum mismatch — see below.
-
----
-
-## 🐳 Docker (Future Stage)
-
-`docker-compose.yml` currently runs the **dev database** only (see "Running Locally").
-Containerising the backend and frontend, plus CI/CD images, remains a later phase.
-
----
-
-## 🗃️ Database Migrations
-
-Flyway owns the schema (`backend/src/main/resources/db/migration/`, `ddl-auto=none`).
-
-- **Never edit a `V*.sql` that has already been applied** — add a new `V<n>__description.sql`.
-- If a migration was edited in place and Flyway reports a checksum mismatch:
-  - disposable local DB → drop and recreate `personal_finance_db` so migrations re-apply;
-  - shared DB (e.g. Supabase) → `./mvnw flyway:repair`, then run the app again.
-- Keep `docs/DB/schema.sql` and `docs/DomainModel/DomainModel.puml` in sync with the migrations.
-
----
-
-## 🚀 Development Kickoff
-
-### Phase 1
-
-- Set up Supabase project and tables
-- Build Spring Boot API with core endpoints:
-  - CRUD for `Transaction`, `Category`, `Investment`, `SavingGoal`
-- Create React UI layout and base pages
-  - Dashboard, Add/Edit forms
-
-### Phase 2 (Optional)
-
-- Add graphs and monthly summaries
-- Export to Excel/CSV
-- Filter by period, type, category
-
----
-
-## 📈 Future Enhancements
-
-- Export data to CSV or Excel
-- Automatic syncing of investment values (via `ticker`)
-- Budget alerts or limits per category
-- Local data cache (offline mode)
-- File attachments (e.g. receipts)
-- Advanced filtering and reports
-
----
+See [`CLAUDE.md`](./CLAUDE.md) for the detailed, up-to-date status and roadmap.
