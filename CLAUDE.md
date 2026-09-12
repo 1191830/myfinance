@@ -36,12 +36,12 @@ Backend (`cd backend`, needs a reachable Postgres per `.env`):
   the unit tests (Mockito, no DB, fast); pass on any machine.
 - `./mvnw test` — also runs `BackendApplicationTests` and the `*IT` integration tests, which
   spin up their own Postgres via Testcontainers (no manual `docker compose up`/dev DB
-  needed) — **requires Testcontainers to actually reach your Docker daemon**. On Windows
-  with Docker Desktop, if you see `Could not find a valid Docker environment` with a
-  malformed/empty `/info` response over the named pipe, enable Docker Desktop → Settings →
-  General → "Expose daemon on tcp://localhost:2375 without TLS" (a real security-relevant
-  setting — only turn it on if you're comfortable with unauthenticated local Docker API
-  access) or set `DOCKER_HOST` to a WSL2 distro's `docker.sock`.
+  needed). Verified passing, 19/19 tests. Docker Desktop 4.73/Engine 29.x bumped its API
+  version and broke Testcontainers 1.x's daemon detection
+  ([testcontainers-java#11212](https://github.com/testcontainers/testcontainers-java/issues/11212),
+  fixed upstream only in 2.0.2) — worked around by pinning `docker-java`'s own API version
+  via `backend/src/test/resources/docker-java.properties` (`api.version=1.44`), read
+  automatically off the test classpath. No Docker Desktop setting changes needed.
 - `./mvnw -DskipTests package` → `target/backend-0.0.1-SNAPSHOT.jar`
 
 Frontend (`cd frontend`):
@@ -136,14 +136,12 @@ bar (spend vs. budget, for whichever month Overview is anchored on — see `lib/
 and Overview surfaces a warning banner for any category over budget that month. Backend
 tests: unit tests (Mockito) cover the recurrence generator and the category-resolution fix
 in isolation, and Testcontainers-backed integration tests cover the same flows end to end
-through the real REST API — the unit tests are verified passing; the integration tests
-compile clean but are not yet verified in this dev environment, see Run/build above.
-Frontend has no test tooling yet.
+through the real REST API — all 19 tests verified passing (`./mvnw test`, see Run/build
+above for the Docker/Testcontainers version-pin this needed). Frontend has no test tooling
+yet.
 
 ## Roadmap
 
-1. **Verify the Testcontainers integration tests** once Docker access is sorted on a given
-   machine (see Run/build) — they compile but aren't yet confirmed passing anywhere.
-2. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
+1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
    Docker packaging; backend paged `GET /api/transactions`; frontend tests (Vitest +
    React Testing Library, deliberately left out of this round).
