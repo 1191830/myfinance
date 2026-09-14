@@ -1,7 +1,19 @@
 package com.myfinance.backend;
 
+import com.jayway.jsonpath.JsonPath;
+import com.myfinance.backend.model.User;
+import com.myfinance.backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
+
+import java.util.UUID;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Base for tests that need a real Postgres. Spring Boot wires the DataSource from the
@@ -23,5 +35,32 @@ public abstract class AbstractIntegrationTest {
 
     static {
         postgres.start();
+    }
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    /**
+     * Every protected endpoint now requires a Bearer token - seeds a fresh test user and
+     * logs in through the real /api/auth/login flow, returning a token ready to attach as
+     * an Authorization header on the rest of a test's MockMvc calls.
+     */
+    protected String loginAsNewUser(MockMvc mockMvc) throws Exception {
+        String username = "it-user-" + UUID.randomUUID();
+        String rawPassword = "test-password";
+        User user = new User();
+        user.setUsername(username);
+        user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        userRepository.save(user);
+
+        String response = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"" + username + "\",\"password\":\"" + rawPassword + "\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return JsonPath.read(response, "$.token");
     }
 }

@@ -5,22 +5,30 @@ import com.myfinance.backend.model.RecurrenceInterval;
 import com.myfinance.backend.model.RecurringTransaction;
 import com.myfinance.backend.model.TransactionFrequency;
 import com.myfinance.backend.model.TransactionType;
+import com.myfinance.backend.model.User;
 import com.myfinance.backend.repository.CategoryRepository;
 import com.myfinance.backend.repository.RecurringTransactionRepository;
+import com.myfinance.backend.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -28,16 +36,34 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class RecurringTransactionServiceImplTest {
 
+    private static final UUID TEST_USER_ID = UUID.randomUUID();
+
     @Mock
     private RecurringTransactionRepository recurringTransactionRepository;
     @Mock
     private CategoryRepository categoryRepository;
     @Mock
+    private UserRepository userRepository;
+    @Mock
     private TransactionService transactionService;
+
+    @BeforeEach
+    void setUpSecurityContext() {
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(TEST_USER_ID, null, List.of()));
+        User testUser = new User();
+        testUser.setId(TEST_USER_ID);
+        lenient().when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+    }
+
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
 
     private RecurringTransactionServiceImpl service() {
         return new RecurringTransactionServiceImpl(recurringTransactionRepository, categoryRepository,
-                transactionService);
+                userRepository, transactionService);
     }
 
     private static RecurringTransaction template() {
@@ -57,7 +83,7 @@ class RecurringTransactionServiceImplTest {
         Category realCategory = new Category();
         realCategory.setId(categoryId);
         realCategory.setName("Food");
-        when(categoryRepository.findById(categoryId)).thenReturn(Optional.of(realCategory));
+        when(categoryRepository.findByIdAndUserId(categoryId, TEST_USER_ID)).thenReturn(Optional.of(realCategory));
         when(recurringTransactionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Category bareCategory = new Category();
@@ -75,7 +101,7 @@ class RecurringTransactionServiceImplTest {
     @Test
     void createRecurringTransaction_throwsWhenCategoryIdIsUnknown() {
         UUID unknownId = UUID.randomUUID();
-        when(categoryRepository.findById(unknownId)).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndUserId(unknownId, TEST_USER_ID)).thenReturn(Optional.empty());
         Category bareCategory = new Category();
         bareCategory.setId(unknownId);
         RecurringTransaction transaction = template();

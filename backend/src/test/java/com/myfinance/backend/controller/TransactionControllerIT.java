@@ -2,12 +2,14 @@ package com.myfinance.backend.controller;
 
 import com.jayway.jsonpath.JsonPath;
 import com.myfinance.backend.AbstractIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -25,8 +27,19 @@ class TransactionControllerIT extends AbstractIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private String token;
+
+    @BeforeEach
+    void authenticate() throws Exception {
+        token = loginAsNewUser(mockMvc);
+    }
+
+    private MockHttpServletRequestBuilder auth(MockHttpServletRequestBuilder builder) {
+        return builder.header("Authorization", "Bearer " + token);
+    }
+
     private String createCategory(String name) throws Exception {
-        String response = mockMvc.perform(post("/api/categories")
+        String response = mockMvc.perform(auth(post("/api/categories"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\"}"))
                 .andExpect(status().isCreated())
@@ -38,7 +51,7 @@ class TransactionControllerIT extends AbstractIntegrationTest {
     void createTransactionWithACategory_resolvesItAndPersists() throws Exception {
         String categoryId = createCategory("IT Transaction Category");
 
-        mockMvc.perform(post("/api/transactions")
+        mockMvc.perform(auth(post("/api/transactions"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"type\":\"EXPENSE\",\"frequency\":\"ONE_TIME\","
                                 + "\"category\":{\"id\":\"" + categoryId + "\"},"
@@ -51,7 +64,7 @@ class TransactionControllerIT extends AbstractIntegrationTest {
 
     @Test
     void createTransactionWithBlankType_returns400() throws Exception {
-        mockMvc.perform(post("/api/transactions")
+        mockMvc.perform(auth(post("/api/transactions"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"frequency\":\"ONE_TIME\",\"amount\":10,"
                                 + "\"date\":\"2026-05-01\",\"description\":\"IT test\"}"))

@@ -2,18 +2,21 @@ package com.myfinance.backend.controller;
 
 import com.jayway.jsonpath.JsonPath;
 import com.myfinance.backend.AbstractIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,8 +34,19 @@ class RecurringTransactionControllerIT extends AbstractIntegrationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private String token;
+
+    @BeforeEach
+    void authenticate() throws Exception {
+        token = loginAsNewUser(mockMvc);
+    }
+
+    private MockHttpServletRequestBuilder auth(MockHttpServletRequestBuilder builder) {
+        return builder.header("Authorization", "Bearer " + token);
+    }
+
     private String createCategory(String name) throws Exception {
-        String response = mockMvc.perform(post("/api/categories")
+        String response = mockMvc.perform(auth(post("/api/categories"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"" + name + "\"}"))
                 .andExpect(status().isCreated())
@@ -47,7 +61,7 @@ class RecurringTransactionControllerIT extends AbstractIntegrationTest {
         LocalDate startDate = today.minusMonths(2).withDayOfMonth(11);
         String description = "IT recurring backfill test";
 
-        String createResponse = mockMvc.perform(post("/api/recurring-transactions")
+        String createResponse = mockMvc.perform(auth(post("/api/recurring-transactions"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"type\":\"EXPENSE\",\"frequency\":\"RECURRING\","
                                 + "\"recurrenceInterval\":\"MONTHLY\","
@@ -59,7 +73,7 @@ class RecurringTransactionControllerIT extends AbstractIntegrationTest {
         String templateId = JsonPath.read(createResponse, "$.id");
 
         // Backfilled synchronously by the create call - no separate /generate needed.
-        String txResponse = mockMvc.perform(get("/api/transactions")).andReturn().getResponse()
+        String txResponse = mockMvc.perform(auth(get("/api/transactions"))).andReturn().getResponse()
                 .getContentAsString();
         List<String> dates = JsonPath.read(txResponse,
                 "$[?(@.description == '" + description + "')].date");
@@ -67,14 +81,13 @@ class RecurringTransactionControllerIT extends AbstractIntegrationTest {
         assertThat(dates).contains(startDate.format(DateTimeFormatter.ISO_LOCAL_DATE));
 
         // Re-running the generator finds nothing new to do for this (or any other) template.
-        String generateResponse = mockMvc.perform(post("/api/transactions/generate"))
+        String generateResponse = mockMvc.perform(auth(post("/api/transactions/generate")))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         assertThat((Integer) JsonPath.read(generateResponse, "$.generated")).isZero();
 
         // Clean up so this template doesn't keep backfilling in future test runs against the
         // same container within this JVM.
-        mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                .delete("/api/recurring-transactions/" + templateId));
+        mockMvc.perform(auth(delete("/api/recurring-transactions/" + templateId)));
     }
 }
