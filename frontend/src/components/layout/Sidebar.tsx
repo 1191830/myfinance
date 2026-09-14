@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { useNetWorth } from '../../hook/useReports';
 import { useSettings } from '../../hook/useSettings';
 import { formatCurrency } from '../../lib/format';
+import { useAuth } from '../../context/AuthContext';
 
 const DEFAULT_NAME = 'Rui Marques';
 
@@ -145,6 +146,7 @@ const SidebarSummary = () => {
 
 export const Sidebar = () => {
   const { data: settings } = useSettings();
+  const { logout } = useAuth();
   const displayName = settings?.displayName ?? DEFAULT_NAME;
 
   return (
@@ -215,19 +217,29 @@ export const Sidebar = () => {
         <div className="text-[13px] font-medium text-white">{displayName}</div>
         <div className="text-[11px] text-[#7f9cba]">Conta pessoal</div>
       </div>
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#7f9cba"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
+      <button
+        type="button"
+        onClick={logout}
+        title="Sair"
+        aria-label="Sair"
+        className="flex h-7 w-7 items-center justify-center rounded-control text-[#7f9cba] hover:bg-[#16375a] hover:text-white"
       >
-        <path d="M6 9l6 6 6-6" />
-      </svg>
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+          <path d="M16 17l5-5-5-5" />
+          <path d="M21 12H9" />
+        </svg>
+      </button>
     </div>
   </aside>
   );
