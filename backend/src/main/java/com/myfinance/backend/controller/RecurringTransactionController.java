@@ -57,8 +57,12 @@ public class RecurringTransactionController {
     // DELETE recurring transaction
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteRecurringTransaction(@PathVariable UUID id) {
-        recurringTransactionService.deleteRecurringTransaction(id);
-        return ResponseEntity.noContent().build();
+        try {
+            recurringTransactionService.deleteRecurringTransaction(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // GET active recurring transactions

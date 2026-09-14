@@ -60,8 +60,12 @@ public class TransactionController {
     // DELETE transaction
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTransaction(@PathVariable UUID id) {
-        transactionService.deleteTransaction(id);
-        return ResponseEntity.noContent().build();
+        try {
+            transactionService.deleteTransaction(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // GET transactions by category ID

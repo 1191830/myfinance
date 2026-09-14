@@ -16,6 +16,6 @@ public class RecurringTransactionScheduler {
     // Daily at 00:05 server time - materializes any due recurring occurrences.
     @Scheduled(cron = "0 5 0 * * *")
     public void generateDueRecurringTransactions() {
-        transactionService.generateMonthlyTransactions();
+        transactionService.generateMonthlyTransactionsForAllUsers();
     }
 }

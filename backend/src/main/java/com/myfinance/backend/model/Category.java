@@ -1,5 +1,6 @@
 package com.myfinance.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -8,7 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "categories", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"name"})
+        @UniqueConstraint(columnNames = {"user_id", "name"})
 })
 public class Category {
 
@@ -24,6 +25,11 @@ public class Category {
     @Column(name = "monthly_budget", precision = 12, scale = 2)
     private BigDecimal monthlyBudget;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
+
     // getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -33,4 +39,7 @@ public class Category {
 
     public BigDecimal getMonthlyBudget() { return monthlyBudget; }
     public void setMonthlyBudget(BigDecimal monthlyBudget) { this.monthlyBudget = monthlyBudget; }
+
+    public User getUser() { return user; }
+    public void setUser(User user) { this.user = user; }
 }

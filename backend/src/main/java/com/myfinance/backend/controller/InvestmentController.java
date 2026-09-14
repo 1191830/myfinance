@@ -58,8 +58,12 @@ public class InvestmentController {
     // DELETE investment by id
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInvestment(@PathVariable UUID id) {
-        investmentService.deleteInvestment(id);
-        return ResponseEntity.noContent().build();
+        try {
+            investmentService.deleteInvestment(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // GET investments by type

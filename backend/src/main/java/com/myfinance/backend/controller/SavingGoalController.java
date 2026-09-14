@@ -58,8 +58,12 @@ public class SavingGoalController {
     // DELETE saving goal
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSavingGoal(@PathVariable UUID id) {
-        savingGoalService.deleteSavingGoal(id);
-        return ResponseEntity.noContent().build();
+        try {
+            savingGoalService.deleteSavingGoal(id);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // GET saving goals ordered by start date (desc)

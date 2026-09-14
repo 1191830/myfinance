@@ -3,21 +3,26 @@ package com.myfinance.backend.repository;
 import com.myfinance.backend.model.Investment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface InvestmentRepository extends JpaRepository<Investment, UUID> {
 
-    // Encontrar investimentos por tipo (ex: ETF, Stock, Crypto)
-    List<Investment> findByTypeIgnoreCaseOrderByStartDateDesc(String type);
+    List<Investment> findByUserId(UUID userId);
 
-    // Encontrar investimento por ticker (ex: para ETFs)
-    List<Investment> findByTickerIgnoreCase(String ticker);
+    Optional<Investment> findByIdAndUserId(UUID id, UUID userId);
+
+    // Encontrar investimentos por tipo (ex: ETF, Stock, Crypto), deste utilizador
+    List<Investment> findByUserIdAndTypeIgnoreCaseOrderByStartDateDesc(UUID userId, String type);
+
+    // Encontrar investimento por ticker, deste utilizador
+    List<Investment> findByUserIdAndTickerIgnoreCase(UUID userId, String ticker);
 
     // Encontrar investimentos cujo valor atual está acima de um determinado valor
-    List<Investment> findByCurrentValueGreaterThanOrderByCurrentValueDesc(Double amount);
+    List<Investment> findByUserIdAndCurrentValueGreaterThanOrderByCurrentValueDesc(UUID userId, Double amount);
 
-    // Encontrar investimentos que foram sincronizados antes de uma certa data (útil para atualizações)
-    List<Investment> findByLastSyncedBeforeOrderByLastSyncedAsc(java.time.LocalDateTime dateTime);
-
+    // Encontrar investimentos que foram sincronizados antes de uma certa data
+    List<Investment> findByUserIdAndLastSyncedBeforeOrderByLastSyncedAsc(UUID userId, LocalDateTime dateTime);
 }

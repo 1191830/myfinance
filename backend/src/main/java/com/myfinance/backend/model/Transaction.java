@@ -1,5 +1,6 @@
 package com.myfinance.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -52,7 +53,20 @@ public class Transaction {
     @JoinColumn(name = "recurring_id", foreignKey = @ForeignKey(name = "fk_transaction_recurring"))
     private RecurringTransaction recurringTransaction;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
+    private User user;
+
     // Getters and Setters
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
 
     public UUID getId() {
         return id;

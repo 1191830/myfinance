@@ -11,6 +11,7 @@ import com.myfinance.backend.model.TransactionType;
 import com.myfinance.backend.repository.InvestmentRepository;
 import com.myfinance.backend.repository.SavingGoalRepository;
 import com.myfinance.backend.repository.TransactionRepository;
+import com.myfinance.backend.security.SecurityUtils;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -45,10 +46,11 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public NetWorthSummary getNetWorth() {
-        BigDecimal investments = investmentRepository.findAll().stream()
+        UUID userId = SecurityUtils.currentUserId();
+        BigDecimal investments = investmentRepository.findByUserId(userId).stream()
                 .map(i -> nz(i.getCurrentValue()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal savings = savingGoalRepository.findAll().stream()
+        BigDecimal savings = savingGoalRepository.findByUserIdOrderByStartDateDesc(userId).stream()
                 .map(g -> nz(g.getCurrentAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return new NetWorthSummary(scale2(investments), scale2(savings),
@@ -80,7 +82,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<CashflowBucket> getCashflow(LocalDate from, LocalDate to, Granularity granularity) {
-        List<Transaction> txns = transactionRepository.findByDateBetweenOrderByDateDesc(from, to);
+        List<Transaction> txns = transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
+                SecurityUtils.currentUserId(), from, to);
         List<CashflowBucket> buckets = new ArrayList<>();
         for (LocalDate[] span : spans(from, to, granularity)) {
             LocalDate start = span[0];
@@ -107,7 +110,8 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<CategoryTotal> getCategoryTotals(LocalDate from, LocalDate to, TransactionType type) {
         Map<UUID, Acc> byCategory = new LinkedHashMap<>();
-        for (Transaction t : transactionRepository.findByDateBetweenOrderByDateDesc(from, to)) {
+        for (Transaction t : transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
+                SecurityUtils.currentUserId(), from, to)) {
             if (t.getType() != type) {
                 continue;
             }
@@ -130,7 +134,8 @@ public class ReportServiceImpl implements ReportService {
     private Totals totals(LocalDate from, LocalDate to) {
         BigDecimal income = BigDecimal.ZERO;
         BigDecimal expense = BigDecimal.ZERO;
-        for (Transaction t : transactionRepository.findByDateBetweenOrderByDateDesc(from, to)) {
+        for (Transaction t : transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
+                SecurityUtils.currentUserId(), from, to)) {
             if (t.getType() == TransactionType.INCOME) {
                 income = income.add(nz(t.getAmount()));
             } else {

@@ -9,15 +9,14 @@ import java.util.UUID;
 
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
-    // Buscar categorias por nome ignorando maiúsculas/minúsculas
-    Optional<Category> findByNameIgnoreCase(String name);
+    Optional<Category> findByIdAndUserId(UUID id, UUID userId);
 
-    // Verificar se existe categoria pelo nome (case insensitive)
-    boolean existsByNameIgnoreCase(String name);
+    // Verificar se existe categoria pelo nome (case insensitive), para este utilizador
+    boolean existsByUserIdAndNameIgnoreCase(UUID userId, String name);
 
-    // Buscar categorias por lista de nomes (case insensitive)
-    List<Category> findByNameInIgnoreCase(List<String> names);
+    // Buscar categorias por lista de nomes (case insensitive), para este utilizador
+    List<Category> findByUserIdAndNameInIgnoreCase(UUID userId, List<String> names);
 
-    // Buscar todas as categorias ordenadas por nome
-    List<Category> findAllByOrderByNameAsc();
+    // Buscar todas as categorias deste utilizador ordenadas por nome
+    List<Category> findByUserIdOrderByNameAsc(UUID userId);
 }

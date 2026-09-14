@@ -36,7 +36,18 @@ public interface TransactionService {
      * (monthly/quarterly/yearly) and endDate. Idempotent per template per period; also
      * catches up on any periods missed since the last run.
      *
+     * Scoped to the current authenticated user's own templates.
+     *
      * @return the number of transactions created
      */
     int generateMonthlyTransactions();
+
+    /**
+     * Same as {@link #generateMonthlyTransactions()} but across every user's active
+     * templates - there's no "current user" in the daily scheduler's job, which is the only
+     * caller of this method.
+     *
+     * @return the number of transactions created
+     */
+    int generateMonthlyTransactionsForAllUsers();
 }
