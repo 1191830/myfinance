@@ -3,6 +3,7 @@ export interface StoredAuth {
   userId: string;
   username: string;
   displayName: string;
+  mustChangePassword: boolean;
 }
 
 const STORAGE_KEY = 'myfinance_auth';

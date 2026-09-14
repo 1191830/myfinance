@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppShell } from '../components/layout/AppShell';
 import { ProtectedRoute } from './ProtectedRoute';
 import { LoginPage } from '../page/LoginPage';
+import { ChangePasswordPage } from '../page/ChangePasswordPage';
 import { OverviewPage } from '../page/OverviewPage';
 import { InvestmentListPage } from '../page/InvestmentListPage';
 import { SavingGoalsListPage } from '../page/SavingGoalListPage';
@@ -16,6 +17,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/change-password" element={<ChangePasswordPage />} />
       <Route element={<ProtectedRoute />}>
         <Route element={<AppShell />}>
           <Route index element={<Navigate to="/inicio" replace />} />

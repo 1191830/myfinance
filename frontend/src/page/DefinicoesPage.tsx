@@ -5,6 +5,7 @@ import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { SectionLabel } from '../components/ui/SectionLabel';
 import { FormField, formInputClass } from '../components/ui/FormField';
+import { ChangePasswordModal } from '../components/forms/ChangePasswordModal';
 import { getErrorMessage, getFieldErrors } from '../lib/apiError';
 
 const PREFERENCES = [
@@ -20,6 +21,7 @@ export const DefinicoesPage = () => {
   const [fieldError, setFieldError] = useState('');
   const [formError, setFormError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   useEffect(() => {
     if (settings) setDisplayName(settings.displayName);
@@ -82,8 +84,19 @@ export const DefinicoesPage = () => {
                 </button>
                 {saved && <span className="text-xs text-income">Guardado.</span>}
               </div>
+              <div className="mt-1 border-t border-line-soft pt-3">
+                <button
+                  type="button"
+                  onClick={() => setPasswordModalOpen(true)}
+                  className="text-[13px] font-medium text-brand hover:text-brand-strong"
+                >
+                  Alterar palavra-passe
+                </button>
+              </div>
             </div>
           </Card>
+
+          <ChangePasswordModal open={passwordModalOpen} onClose={() => setPasswordModalOpen(false)} />
 
           <Card className="max-w-md">
             <SectionLabel>Preferências</SectionLabel>
