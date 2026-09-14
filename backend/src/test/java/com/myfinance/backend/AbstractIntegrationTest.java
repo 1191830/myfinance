@@ -43,12 +43,15 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    protected record SeededUser(String username, String password, String token) {
+    }
+
     /**
-     * Every protected endpoint now requires a Bearer token - seeds a fresh test user and
-     * logs in through the real /api/auth/login flow, returning a token ready to attach as
-     * an Authorization header on the rest of a test's MockMvc calls.
+     * Seeds a fresh test user and logs in through the real /api/auth/login flow, returning
+     * the username/password (for tests that need to log in again, e.g. after a password
+     * change) alongside the token.
      */
-    protected String loginAsNewUser(MockMvc mockMvc) throws Exception {
+    protected SeededUser seedUserAndLogin(MockMvc mockMvc) throws Exception {
         String username = "it-user-" + UUID.randomUUID();
         String rawPassword = "test-password";
         User user = new User();
@@ -61,6 +64,16 @@ public abstract class AbstractIntegrationTest {
                         .content("{\"username\":\"" + username + "\",\"password\":\"" + rawPassword + "\"}"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        return JsonPath.read(response, "$.token");
+        String token = JsonPath.read(response, "$.token");
+        return new SeededUser(username, rawPassword, token);
+    }
+
+    /**
+     * Every protected endpoint now requires a Bearer token - seeds a fresh test user and
+     * logs in through the real /api/auth/login flow, returning a token ready to attach as
+     * an Authorization header on the rest of a test's MockMvc calls.
+     */
+    protected String loginAsNewUser(MockMvc mockMvc) throws Exception {
+        return seedUserAndLogin(mockMvc).token();
     }
 }
