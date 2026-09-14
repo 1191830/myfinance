@@ -28,7 +28,10 @@ public class DatabaseInitializer implements ApplicationRunner {
             if ("42P04".equals(e.getSQLState())) { // database already exists
                 System.out.println("ℹ Database already exists");
             } else {
-                throw e;
+                // This is a local-dev convenience only (the target database already exists
+                // on any managed host, e.g. Supabase, whose role may not even have
+                // CREATE DATABASE privileges) - never let it fail application startup.
+                System.out.println("ℹ Skipping database creation: " + e.getMessage());
             }
         }
     }
