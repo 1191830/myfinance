@@ -1,7 +1,8 @@
 # MyFinance
 
-Single-user personal finance tracker: transactions, per-category budgets, investments,
-savings goals, and recurring transactions with automatic backfill.
+Personal finance tracker for a small set of accounts: transactions, per-category budgets,
+investments, savings goals, and recurring transactions with automatic backfill. Each
+account's data is private to that account.
 
 ## Tech stack
 
@@ -24,10 +25,12 @@ docker compose up -d                    # starts Postgres 16 on :5432
 ```
 
 `backend/.env` holds `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`,
-`POSTGRES_PASSWORD` — read by both the Spring Boot app (via `spring-dotenv`) and
-`docker-compose.yml` (env_file), so one file configures both. The compose file starts a
-single `db` service (container `myfinance-db`, named volume `myfinance_pgdata` so data
-survives `docker compose down`; use `docker compose down -v` to wipe it).
+`POSTGRES_PASSWORD`, and `JWT_SECRET` (signs login tokens — any long random string; generate
+one with `node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"`).
+These are read by both the Spring Boot app (via `spring-dotenv`) and `docker-compose.yml`
+(env_file), so one file configures both. The compose file starts a single `db` service
+(container `myfinance-db`, named volume `myfinance_pgdata` so data survives
+`docker compose down`; use `docker compose down -v` to wipe it).
 
 ## Running the backend
 
@@ -49,7 +52,22 @@ npm run dev
 ```
 
 Vite dev server on `http://localhost:5173`. The API base URL is currently hardcoded to
-`http://localhost:8080/api` in `src/config/axios.ts` (no `.env`/`VITE_API_URL` yet).
+`http://localhost:8080/api` in `src/config/axios.ts` (no `.env`/`VITE_API_URL` yet). Visiting
+any page while logged out redirects to `/login`.
+
+## Accounts
+
+There's no sign-up page — accounts are a fixed set, added by hand. A first migration
+(`backend/src/main/resources/db/migration/V6__add_users_and_ownership.sql`) seeds one
+account:
+
+- username `rui`, password `changeme123` — change this before deploying anywhere reachable
+  by anyone else, since it's checked into the repo.
+
+To add another account, write a new Flyway migration that inserts a row into `users`
+(`username`, and `password_hash` set to a bcrypt hash of the chosen password — e.g. via
+Spring Security's `BCryptPasswordEncoder`, or any bcrypt tool). Each account's data
+(transactions, categories, investments, saving goals, settings) is private to that account.
 
 ## Running tests
 
@@ -86,6 +104,7 @@ CLAUDE.md   Detailed architecture notes, current status, and roadmap
 
 ## Features
 
+- Username/password login (JWT), each account's data private to that account
 - Transactions (income/expense), one-time or recurring with interval (monthly/quarterly/
   yearly), day-of-month, and optional end date — recurring templates auto-backfill every
   due month up to today on creation and on a daily scheduled job

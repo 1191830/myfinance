@@ -12,6 +12,13 @@ enum TransactionFrequency {
 }
 
 ' Define Classes
+class User {
+  +UUID id
+  +String username
+  +String passwordHash
+  +Timestamp createdAt
+}
+
 class Transaction {
   +UUID id
   +TransactionType type
@@ -63,5 +70,12 @@ class SavingGoal {
 Transaction --> RecurringTransaction : recurring_id
 Transaction --> Category : category_id
 RecurringTransaction --> Category : category_id
+
+' Every resource is owned by a user - each account's data is isolated from the others.
+User --> Transaction : user_id
+User --> RecurringTransaction : user_id
+User --> Category : user_id
+User --> Investment : user_id
+User --> SavingGoal : user_id
 
 @enduml

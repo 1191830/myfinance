@@ -2,9 +2,11 @@
 
 ## Project
 
-PersonalFinanceApp / MyFinance — a single-user, locally-run personal finance manager.
-Track **recurring and one-time** income and expenses, plus investments and saving goals,
-and analyse cash flow by **month, quarter, and year**. No authentication (one local user).
+MyFinance — a personal finance manager for a small, fixed set of accounts (multi-user,
+each account's data isolated from the others). Track **recurring and one-time** income and
+expenses, plus investments and saving goals, and analyse cash flow by **month, quarter, and
+year**. Username/password auth via JWT; no public sign-up — accounts are admin-created (see
+Domain model → `users`).
 
 ## Architecture
 
@@ -12,6 +14,11 @@ and analyse cash flow by **month, quarter, and year**. No authentication (one lo
   Spring Data JPA + PostgreSQL, Flyway migrations. On boot `config/DatabaseInitializer`
   creates the database if it does not exist; `config/EnvConfig` + the `spring-dotenv`
   starter load `backend/.env`.
+- Auth — Spring Security, stateless JWT bearer tokens (`security/JwtService`,
+  `security/JwtAuthenticationFilter`, wired in `config/SecurityConfig`). `POST
+  /api/auth/login` is the only public endpoint; everything else under `/api/**` requires
+  `Authorization: Bearer <token>`. `security/SecurityUtils.currentUserId()` reads the
+  authenticated user's id out of `SecurityContextHolder` for use in every service.
 - `frontend/` — React 19 + Vite 7 + TypeScript, dev server on port `5173`. **Tailwind 4**
   for styling (design tokens as `@theme` vars in `src/index.css`; local primitives in
   `src/components/ui/`, plain-SVG charts in `src/components/charts/`), TanStack React Query
@@ -27,7 +34,9 @@ and analyse cash flow by **month, quarter, and year**. No authentication (one lo
 From a clean checkout: `cp backend/.env.example backend/.env`, then `docker compose up -d`
 (dev Postgres — `docker-compose.yml`, credentials from `backend/.env`). The database must be
 up **before** the backend; `config/DatabaseInitializer` does not create it. Reset with
-`docker compose down -v`.
+`docker compose down -v`. `backend/.env`'s `JWT_SECRET` signs login tokens — any long random
+string works for local dev; generate one with
+`node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"`.
 
 Backend (`cd backend`, needs a reachable Postgres per `.env`):
 
@@ -70,6 +79,16 @@ Frontend (`cd frontend`):
   `@Positive`/`@PositiveOrZero`); `exception/GlobalExceptionHandler` turns a failed `@Valid`
   into `400` + `{field: message}`. Controllers add `@Valid` to the create/update
   `@RequestBody` param.
+- **Every resource is owned by a user.** `Category`/`Investment`/`RecurringTransaction`/
+  `Transaction`/`SavingGoal`/`Settings` each carry a `@ManyToOne User user` (`@JsonIgnore`d —
+  never serialize it back to a client). Repositories expose `userId`-scoped finders
+  (`findByUserId...`, `findByIdAndUserId`) instead of unscoped ones; services call
+  `SecurityUtils.currentUserId()` and scope every query, plus set `.setUser(...)` on create.
+  Update/delete on a row owned by someone else throws the same `IllegalArgumentException` as
+  "not found" (never a `403`) so existence isn't leaked. The one unscoped path is
+  `RecurringTransactionScheduler`'s daily job (no request/current-user context) — it uses
+  `RecurringTransactionRepository.findByActiveTrue()` across all users and each generated
+  `Transaction` inherits its owner from the template, not from "the current user".
 - A `@ManyToOne` field on an incoming request body is a bare Jackson-deserialized instance,
   never loaded in the persistence context — Hibernate treats it as transient and refuses to
   flush it as a foreign key even when its id is real. The owning service must re-resolve it
@@ -96,17 +115,25 @@ Frontend (`cd frontend`):
 
 ## Domain model
 
-- `categories(id, name, monthly_budget?)` — case-insensitive unique `name`; budget is
-  optional, no limit until one is set.
-- `recurring_transactions` — a template: `type`, `frequency`, `recurrence_interval`
-  (`MONTHLY`/`QUARTERLY`/`YEARLY`), `category`, `amount`, `description`, `start_date` (first
-  occurrence), `end_date?` (last occurrence), `active`.
-- `transactions` — `type`, `frequency`, `category`, `amount`, `date`, `description`,
-  `recurring_id?` → template (set null when the template is deleted).
-- `investments` — `type`, `ticker?`, `amount_invested`, `current_value`, `start_date`,
-  `notes?`, `last_synced?`.
-- `saving_goals` — `name`, `target_amount`, `current_amount`, `start_date`, `end_date?`.
-- `settings` — single-row app settings: `display_name`.
+- `users(id, username, password_hash, created_at)` — case-insensitive unique `username`. No
+  self-service signup: add an account with a new Flyway migration inserting a row (bcrypt
+  the password with `BCryptPasswordEncoder` first). Every other table below has a `user_id`
+  FK to this table, and every unique constraint that used to be global is now per-user (e.g.
+  categories' name uniqueness is `(user_id, lower(name))`).
+- `categories(id, user_id, name, monthly_budget?)` — case-insensitive unique `name` per user;
+  budget is optional, no limit until one is set.
+- `recurring_transactions` — a template: `user_id`, `type`, `frequency`,
+  `recurrence_interval` (`MONTHLY`/`QUARTERLY`/`YEARLY`), `category`, `amount`,
+  `description`, `start_date` (first occurrence), `end_date?` (last occurrence), `active`.
+- `transactions` — `user_id`, `type`, `frequency`, `category`, `amount`, `date`,
+  `description`, `recurring_id?` → template (set null when the template is deleted).
+- `investments` — `user_id`, `type`, `ticker?`, `amount_invested`, `current_value`,
+  `start_date`, `notes?`, `last_synced?`.
+- `saving_goals` — `user_id`, `name`, `target_amount`, `current_amount`, `start_date`,
+  `end_date?`.
+- `settings` — one row per user (`user_id` unique): `display_name`. Lazily created on that
+  user's first `GET /api/settings` (defaulted to their username) rather than requiring a
+  separate seeding step when an account is added.
 
 **Recurring behaviour:** templates live in `recurring_transactions`; a generator
 **materializes** one concrete `transactions` row per period per active template, per its
@@ -133,15 +160,21 @@ Transações with that term pre-filled; the period selector is a real dropdown b
 changes Overview (Este mês / Mês passado — Overview's KPIs are inherently month-shaped, so
 no year option). Categories carry an optional `monthlyBudget`; Categorias shows a progress
 bar (spend vs. budget, for whichever month Overview is anchored on — see `lib/period.ts`)
-and Overview surfaces a warning banner for any category over budget that month. Backend
+and Overview surfaces a warning banner for any category over budget that month. Multi-user
+auth is done: JWT login (`POST /api/auth/login`), every resource scoped/owned per user (see
+Conventions and Domain model → `users`), a frontend `AuthContext` + `/login` page + route
+guard (`router/ProtectedRoute`), and a logout control in the Sidebar's user footer. Backend
 tests: unit tests (Mockito) cover the recurrence generator and the category-resolution fix
 in isolation, and Testcontainers-backed integration tests cover the same flows end to end
-through the real REST API — all 19 tests verified passing (`./mvnw test`, see Run/build
-above for the Docker/Testcontainers version-pin this needed). Frontend has no test tooling
-yet.
+through the real REST API (each test logs in through the real `/api/auth/login` flow first)
+— all 19 tests verified passing (`./mvnw test`, see Run/build above for the
+Docker/Testcontainers version-pin this needed). Frontend has no test tooling yet.
 
 ## Roadmap
 
 1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
    Docker packaging; backend paged `GET /api/transactions`; frontend tests (Vitest +
-   React Testing Library, deliberately left out of this round).
+   React Testing Library, deliberately left out of this round); a change-password UI/flow
+   (accounts are seeded with a placeholder password today, changed only by DB access);
+   optional data sharing between accounts (isolation was chosen as the default, with the
+   explicit intent to allow sharing later without a data-model rewrite).
