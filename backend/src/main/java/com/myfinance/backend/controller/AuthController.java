@@ -1,5 +1,6 @@
 package com.myfinance.backend.controller;
 
+import com.myfinance.backend.dto.ChangePasswordRequest;
 import com.myfinance.backend.dto.LoginRequest;
 import com.myfinance.backend.dto.LoginResponse;
 import com.myfinance.backend.model.Settings;
@@ -13,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -48,11 +51,26 @@ public class AuthController {
         return ResponseEntity.ok(toResponse(user));
     }
 
+    @PutMapping("/password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        User user = userRepository.findById(SecurityUtils.currentUserId())
+                .orElseThrow(() -> new IllegalStateException("Authenticated user no longer exists."));
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPasswordHash())) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("currentPassword", "A palavra-passe atual está incorreta."));
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
+        user.setMustChangePassword(false);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+
     private LoginResponse toResponse(User user) {
         String token = jwtService.generateToken(user.getId(), user.getUsername());
         String displayName = settingsRepository.findByUserId(user.getId())
                 .map(Settings::getDisplayName)
                 .orElse(user.getUsername());
-        return new LoginResponse(token, user.getId(), user.getUsername(), displayName);
+        return new LoginResponse(token, user.getId(), user.getUsername(), displayName,
+                user.isMustChangePassword());
     }
 }
