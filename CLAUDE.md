@@ -10,10 +10,13 @@ Domain model → `users`).
 
 ## Architecture
 
-- `backend/` — Java 17, Spring Boot 3.5.4 REST API, port `8080`, base path `/api`.
-  Spring Data JPA + PostgreSQL, Flyway migrations. On boot `config/DatabaseInitializer`
-  creates the database if it does not exist; `config/EnvConfig` + the `spring-dotenv`
-  starter load `backend/.env`.
+- `backend/` — Java 17, Spring Boot 3.5.4 REST API, port `${PORT:8080}` (`PORT` is how
+  Render assigns one in production), base path `/api`. Spring Data JPA + PostgreSQL, Flyway
+  migrations. On boot `config/DatabaseInitializer` creates the database if it does not
+  exist and never fails startup if it can't (a managed host's role may not have
+  `CREATE DATABASE` at all — that's fine, the target database already exists there);
+  `config/EnvConfig` + the `spring-dotenv` starter load `backend/.env`. `backend/Dockerfile`
+  is what Render's Docker environment builds.
 - Auth — Spring Security, stateless JWT bearer tokens (`security/JwtService`,
   `security/JwtAuthenticationFilter`, wired in `config/SecurityConfig`). `POST
   /api/auth/login` is the only public endpoint; everything else under `/api/**` requires
@@ -25,10 +28,13 @@ Domain model → `users`).
 - `frontend/` — React 19 + Vite 7 + TypeScript, dev server on port `5173`. **Tailwind 4**
   for styling (design tokens as `@theme` vars in `src/index.css`; local primitives in
   `src/components/ui/`, plain-SVG charts in `src/components/charts/`), TanStack React Query
-  for server state, axios (`src/config/axios.ts`, baseURL `http://localhost:8080/api`).
-  No MUI, no CSS-in-JS. Light theme only. Navy app shell = `components/layout/AppShell`.
+  for server state, axios (`src/config/axios.ts`, baseURL `import.meta.env.VITE_API_URL`,
+  falls back to `http://localhost:8080/api` for local dev). No MUI, no CSS-in-JS. Light
+  theme only. Navy app shell = `components/layout/AppShell`. `frontend/vercel.json` rewrites
+  every path to `/index.html` so client-side routes survive a hard refresh on Vercel.
 - Database — PostgreSQL. Local dev DB `personal_finance_db` from `backend/.env`; the
-  production target is Supabase via `backend/.env.production`.
+  production target is Supabase via `backend/.env.production` (real deployment target, not
+  just a placeholder — see Run/build → Deploy).
 - Data flow: React screen (`src/page/`) → hook (`src/hook/use*.ts`) → service
   (`src/service/*Service.ts`) → axios → `@RestController` → service → `JpaRepository` → Postgres.
 
@@ -62,6 +68,16 @@ Frontend (`cd frontend`):
 - `npm run build` (`tsc -b && vite build`)
 - `npm run lint`
 
+**Deploy** (all free tier): backend on Render (Docker environment, `backend/Dockerfile`,
+root directory `backend`, deploys from `main`) with env vars `POSTGRES_HOST`/`PORT`/`DB`/
+`USER`/`PASSWORD` (from the Supabase project — see `backend/.env.production` for the
+current values), `JWT_SECRET`, `DB_SSL_MODE=require` (Supabase needs SSL; local dev
+defaults to `disable`), `ALLOWED_ORIGINS` (the Vercel URL). Frontend on Vercel (root
+directory `frontend`, Vite preset auto-detected) with build env var `VITE_API_URL` set to
+the Render URL + `/api`. Render's free tier sleeps after ~15 min idle — expect a slow first
+request after a gap; the recurring-transaction scheduler's existing catch-up logic covers
+any daily run it slept through.
+
 ## Conventions
 
 - **Migrations are immutable.** Never edit a `V*.sql` that may already have been applied —
@@ -75,9 +91,9 @@ Frontend (`cd frontend`):
 - Entities are returned directly from controllers. The exception is `/api/reports/*`
   (aggregation, no backing entity): those responses are `dto/` Java records, and the
   `ReportService` aggregates in memory rather than via JPQL `GROUP BY`.
-- CORS is centralised in `config/WebCorsConfig` (`WebMvcConfigurer`) — allows the Vite dev
-  server on both `http://localhost:5173` and `http://127.0.0.1:5173`. No `@CrossOrigin` on
-  controllers.
+- CORS is centralised in `config/WebCorsConfig` (`WebMvcConfigurer`) — allowed origins come
+  from the `ALLOWED_ORIGINS` env var (comma-separated), defaulting to the Vite dev server on
+  both `http://localhost:5173` and `http://127.0.0.1:5173`. No `@CrossOrigin` on controllers.
 - **Bean Validation** on the entities doubling as request bodies (`@NotNull`/`@NotBlank`/
   `@Positive`/`@PositiveOrZero`); `exception/GlobalExceptionHandler` turns a failed `@Valid`
   into `400` + `{field: message}`. Controllers add `@Valid` to the create/update
@@ -184,7 +200,7 @@ Docker/Testcontainers version-pin this needed). Frontend has no test tooling yet
 ## Roadmap
 
 1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
-   Docker packaging; backend paged `GET /api/transactions`; frontend tests (Vitest +
-   React Testing Library, deliberately left out of this round); optional data sharing
-   between accounts (isolation was chosen as the default, with the explicit intent to
-   allow sharing later without a data-model rewrite).
+   backend paged `GET /api/transactions`; frontend tests (Vitest + React Testing Library,
+   deliberately left out of this round); optional data sharing between accounts (isolation
+   was chosen as the default, with the explicit intent to allow sharing later without a
+   data-model rewrite); a custom domain (Render/Vercel's default subdomains are in use).

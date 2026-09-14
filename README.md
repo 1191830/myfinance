@@ -51,9 +51,10 @@ npm install
 npm run dev
 ```
 
-Vite dev server on `http://localhost:5173`. The API base URL is currently hardcoded to
-`http://localhost:8080/api` in `src/config/axios.ts` (no `.env`/`VITE_API_URL` yet). Visiting
-any page while logged out redirects to `/login`.
+Vite dev server on `http://localhost:5173`. The API base URL defaults to
+`http://localhost:8080/api`; override it with a `VITE_API_URL` build-time env var (see
+`frontend/.env.example`) when pointing at a deployed backend. Visiting any page while logged
+out redirects to `/login`.
 
 ## Accounts
 
@@ -119,6 +120,27 @@ CLAUDE.md   Detailed architecture notes, current status, and roadmap
 - Investments and savings goals
 - Reports: net worth, month summary, cash flow, spend by category
 - Definições (settings) page: editable display name, currency/locale, shortcuts
+
+## Deployment
+
+Free tier, two services plus the existing Supabase database:
+
+- **Backend → [Render](https://render.com)**: new Web Service, Docker environment, root
+  directory `backend` (builds `backend/Dockerfile`), deploy branch `main`. Env vars:
+  `POSTGRES_HOST`, `POSTGRES_PORT`, `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`
+  (from the Supabase project — see `backend/.env.production` for the current values),
+  `JWT_SECRET`, `DB_SSL_MODE=require` (Supabase requires SSL; local dev defaults to
+  `disable`), `ALLOWED_ORIGINS` (the Vercel URL from the next step).
+- **Frontend → [Vercel](https://vercel.com)**: import the repo, root directory `frontend`,
+  framework preset Vite (auto-detected). Build env var `VITE_API_URL` = the Render service's
+  URL + `/api`.
+- Circle back to Render afterward and set `ALLOWED_ORIGINS` to the Vercel URL, then redeploy
+  (env var changes need a manual redeploy on Render's free tier).
+
+Both auto-deploy on every push to `main`. Render's free tier sleeps after ~15 min idle —
+the first request after a gap is slow (cold start); the recurring-transaction scheduler's
+existing catch-up logic (see Domain model → Recurring behaviour in `CLAUDE.md`) covers any
+daily run it slept through, so nothing is lost, just possibly delayed.
 
 ## Status and roadmap
 
