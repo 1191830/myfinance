@@ -15,7 +15,8 @@
     { "file": "TransacaoModal.dc.html", "x": 0, "y": 0, "w": 640, "h": 620, "page": "page-3", "title": "Modal — Transação" },
     { "file": "InvestimentoModal.dc.html", "x": 760, "y": 0, "w": 640, "h": 620, "page": "page-3", "title": "Modal — Investimento" },
     { "file": "ObjetivoModal.dc.html", "x": 1520, "y": 0, "w": 640, "h": 540, "page": "page-3", "title": "Modal — Objetivo" },
-    { "file": "CategoriaModal.dc.html", "x": 2280, "y": 0, "w": 480, "h": 340, "page": "page-3", "title": "Modal — Categoria" }
+    { "file": "CategoriaModal.dc.html", "x": 2280, "y": 0, "w": 480, "h": 340, "page": "page-3", "title": "Modal — Categoria" },
+    { "file": "PasswordModal.dc.html", "x": 2840, "y": 0, "w": 480, "h": 560, "page": "page-3", "title": "Modal — Alterar palavra-passe" }
   ],
   "launch": { "view": "canvas", "page": "page-1" }
 }

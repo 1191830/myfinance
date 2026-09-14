@@ -61,13 +61,18 @@ There's no sign-up page — accounts are a fixed set, added by hand. A first mig
 (`backend/src/main/resources/db/migration/V6__add_users_and_ownership.sql`) seeds one
 account:
 
-- username `rui`, password `changeme123` — change this before deploying anywhere reachable
-  by anyone else, since it's checked into the repo.
+- username `rui`, password `changeme123` — logging in with it lands on a mandatory change-
+  password screen (`must_change_password` is set for this account, see
+  `V7__add_must_change_password.sql`), so this gets forced out before the account can do
+  anything else. It's still worth not deploying anywhere reachable by anyone else until
+  that first login has happened, since the placeholder is checked into the repo.
 
 To add another account, write a new Flyway migration that inserts a row into `users`
-(`username`, and `password_hash` set to a bcrypt hash of the chosen password — e.g. via
-Spring Security's `BCryptPasswordEncoder`, or any bcrypt tool). Each account's data
-(transactions, categories, investments, saving goals, settings) is private to that account.
+(`username`, `password_hash` set to a bcrypt hash of the chosen password — e.g. via Spring
+Security's `BCryptPasswordEncoder`, or any bcrypt tool — and `must_change_password = true`,
+same reasoning as the seeded account). Each account's data (transactions, categories,
+investments, saving goals, settings) is private to that account. Anyone can also change
+their own password any time from Definições → "Alterar palavra-passe".
 
 ## Running tests
 
@@ -104,7 +109,9 @@ CLAUDE.md   Detailed architecture notes, current status, and roadmap
 
 ## Features
 
-- Username/password login (JWT), each account's data private to that account
+- Username/password login (JWT), each account's data private to that account; a mandatory
+  change-password screen after first login with a placeholder password, and a voluntary
+  one from Definições any time after that
 - Transactions (income/expense), one-time or recurring with interval (monthly/quarterly/
   yearly), day-of-month, and optional end date — recurring templates auto-backfill every
   due month up to today on creation and on a daily scheduled job

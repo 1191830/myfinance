@@ -19,6 +19,9 @@ Domain model → `users`).
   /api/auth/login` is the only public endpoint; everything else under `/api/**` requires
   `Authorization: Bearer <token>`. `security/SecurityUtils.currentUserId()` reads the
   authenticated user's id out of `SecurityContextHolder` for use in every service.
+  `PUT /api/auth/password` changes the current user's password (verifies the current one
+  first); a `users.must_change_password` flag, returned by `/login` and `/me`, forces the
+  frontend to the change-password page before anything else until it's cleared.
 - `frontend/` — React 19 + Vite 7 + TypeScript, dev server on port `5173`. **Tailwind 4**
   for styling (design tokens as `@theme` vars in `src/index.css`; local primitives in
   `src/components/ui/`, plain-SVG charts in `src/components/charts/`), TanStack React Query
@@ -45,7 +48,7 @@ Backend (`cd backend`, needs a reachable Postgres per `.env`):
   the unit tests (Mockito, no DB, fast); pass on any machine.
 - `./mvnw test` — also runs `BackendApplicationTests` and the `*IT` integration tests, which
   spin up their own Postgres via Testcontainers (no manual `docker compose up`/dev DB
-  needed). Verified passing, 19/19 tests. Docker Desktop 4.73/Engine 29.x bumped its API
+  needed). Verified passing, 23/23 tests. Docker Desktop 4.73/Engine 29.x bumped its API
   version and broke Testcontainers 1.x's daemon detection
   ([testcontainers-java#11212](https://github.com/testcontainers/testcontainers-java/issues/11212),
   fixed upstream only in 2.0.2) — worked around by pinning `docker-java`'s own API version
@@ -115,10 +118,12 @@ Frontend (`cd frontend`):
 
 ## Domain model
 
-- `users(id, username, password_hash, created_at)` — case-insensitive unique `username`. No
-  self-service signup: add an account with a new Flyway migration inserting a row (bcrypt
-  the password with `BCryptPasswordEncoder` first). Every other table below has a `user_id`
-  FK to this table, and every unique constraint that used to be global is now per-user (e.g.
+- `users(id, username, password_hash, created_at, must_change_password)` — case-insensitive
+  unique `username`. No self-service signup: add an account with a new Flyway migration
+  inserting a row (bcrypt the password with `BCryptPasswordEncoder` first) — set
+  `must_change_password = true` on it too, same as the seeded account, so a placeholder
+  password can't linger unnoticed. Every other table below has a `user_id` FK to this
+  table, and every unique constraint that used to be global is now per-user (e.g.
   categories' name uniqueness is `(user_id, lower(name))`).
 - `categories(id, user_id, name, monthly_budget?)` — case-insensitive unique `name` per user;
   budget is optional, no limit until one is set.
@@ -163,18 +168,23 @@ bar (spend vs. budget, for whichever month Overview is anchored on — see `lib/
 and Overview surfaces a warning banner for any category over budget that month. Multi-user
 auth is done: JWT login (`POST /api/auth/login`), every resource scoped/owned per user (see
 Conventions and Domain model → `users`), a frontend `AuthContext` + `/login` page + route
-guard (`router/ProtectedRoute`), and a logout control in the Sidebar's user footer. Backend
-tests: unit tests (Mockito) cover the recurrence generator and the category-resolution fix
-in isolation, and Testcontainers-backed integration tests cover the same flows end to end
-through the real REST API (each test logs in through the real `/api/auth/login` flow first)
-— all 19 tests verified passing (`./mvnw test`, see Run/build above for the
+guard (`router/ProtectedRoute`), and a logout control in the Sidebar's user footer.
+Change-password is done too, in the two shapes designed on the canvas
+(`docs/design/PasswordModal.dc.html`): one shared `components/forms/ChangePasswordForm.tsx`
+used both by `page/ChangePasswordPage.tsx` (the mandatory, full-page framing —
+`router/ProtectedRoute` redirects here whenever `must_change_password` is set, currently
+true for the seeded `rui` account) and `components/forms/ChangePasswordModal.tsx` (the
+voluntary framing, opened from Definições' "Alterar palavra-passe"). Backend tests: unit
+tests (Mockito) cover the recurrence generator and the category-resolution fix in
+isolation, and Testcontainers-backed integration tests cover the same flows end to end
+through the real REST API (each test logs in through the real `/api/auth/login` flow
+first) — all 23 tests verified passing (`./mvnw test`, see Run/build above for the
 Docker/Testcontainers version-pin this needed). Frontend has no test tooling yet.
 
 ## Roadmap
 
 1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
    Docker packaging; backend paged `GET /api/transactions`; frontend tests (Vitest +
-   React Testing Library, deliberately left out of this round); a change-password UI/flow
-   (accounts are seeded with a placeholder password today, changed only by DB access);
-   optional data sharing between accounts (isolation was chosen as the default, with the
-   explicit intent to allow sharing later without a data-model rewrite).
+   React Testing Library, deliberately left out of this round); optional data sharing
+   between accounts (isolation was chosen as the default, with the explicit intent to
+   allow sharing later without a data-model rewrite).

@@ -12,7 +12,8 @@ CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username TEXT NOT NULL,
     password_hash TEXT NOT NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT now()
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    must_change_password BOOLEAN NOT NULL DEFAULT false -- forces a change on next login
 );
 
 CREATE TABLE categories (
