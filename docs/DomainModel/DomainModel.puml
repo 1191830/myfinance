@@ -12,6 +12,11 @@ enum TransactionFrequency {
 }
 
 ' Define Classes
+class Household {
+  +UUID id
+  +String name
+}
+
 class User {
   +UUID id
   +String username
@@ -72,11 +77,21 @@ Transaction --> RecurringTransaction : recurring_id
 Transaction --> Category : category_id
 RecurringTransaction --> Category : category_id
 
-' Every resource is owned by a user - each account's data is isolated from the others.
-User --> Transaction : user_id
-User --> RecurringTransaction : user_id
-User --> Category : user_id
-User --> Investment : user_id
-User --> SavingGoal : user_id
+' Every user belongs to exactly one household; shared resources are scoped by household,
+' not by the individual user - anyone in a household can see and edit anything in it.
+' user_id stays on each row as provenance (who added it) but isn't the authorization key.
+User --> Household : household_id
+Household --> Transaction : household_id
+Household --> RecurringTransaction : household_id
+Household --> Category : household_id
+Household --> Investment : household_id
+Household --> SavingGoal : household_id
+
+' Settings is the one exception - it stays personal to each user, not shared.
+User --> Transaction : user_id (provenance)
+User --> RecurringTransaction : user_id (provenance)
+User --> Category : user_id (provenance)
+User --> Investment : user_id (provenance)
+User --> SavingGoal : user_id (provenance)
 
 @enduml

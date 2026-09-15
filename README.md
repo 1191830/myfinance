@@ -1,8 +1,12 @@
 # MyFinance
 
 Personal finance tracker for a small set of accounts: transactions, per-category budgets,
-investments, savings goals, and recurring transactions with automatic backfill. Each
-account's data is private to that account.
+investments, savings goals, and recurring transactions with automatic backfill. Accounts
+are grouped into households — everyone in one shares the same data; an account not placed
+in a household is private on its own.
+
+Live at **https://myfinance-lemon.vercel.app** (backend on Render, database on Supabase —
+see Deployment below).
 
 ## Tech stack
 
@@ -56,24 +60,28 @@ Vite dev server on `http://localhost:5173`. The API base URL defaults to
 `frontend/.env.example`) when pointing at a deployed backend. Visiting any page while logged
 out redirects to `/login`.
 
-## Accounts
+## Accounts and households
 
-There's no sign-up page — accounts are a fixed set, added by hand. A first migration
-(`backend/src/main/resources/db/migration/V6__add_users_and_ownership.sql`) seeds one
-account:
+There's no sign-up page — accounts are a fixed set, added by hand, and grouped into
+**households** (everyone in one household shares the same transactions, categories,
+investments, and saving goals; display names in Definições stay personal either way).
+Two accounts exist today, sharing one household
+(`backend/src/main/resources/db/migration/V8__add_households.sql`):
 
-- username `rui`, password `changeme123` — logging in with it lands on a mandatory change-
-  password screen (`must_change_password` is set for this account, see
-  `V7__add_must_change_password.sql`), so this gets forced out before the account can do
-  anything else. It's still worth not deploying anywhere reachable by anyone else until
-  that first login has happened, since the placeholder is checked into the repo.
+- username `rui`, password `changeme123`
+- username `rita`, password `changeme123`
+
+Both are seeded with `must_change_password` set, so logging in with either lands on a
+mandatory change-password screen before anything else — worth doing for both before
+sharing the link any further, since the placeholder is checked into the repo.
 
 To add another account, write a new Flyway migration that inserts a row into `users`
 (`username`, `password_hash` set to a bcrypt hash of the chosen password — e.g. via Spring
-Security's `BCryptPasswordEncoder`, or any bcrypt tool — and `must_change_password = true`,
-same reasoning as the seeded account). Each account's data (transactions, categories,
-investments, saving goals, settings) is private to that account. Anyone can also change
-their own password any time from Definições → "Alterar palavra-passe".
+Security's `BCryptPasswordEncoder`, or any bcrypt tool — `must_change_password = true`, same
+reasoning as the seeded accounts, and a `household_id`: either the existing shared
+household's id to add them to it, or a fresh `households` row of their own to keep them
+private). Anyone can also change their own password any time from Definições → "Alterar
+palavra-passe".
 
 ## Running tests
 
@@ -110,9 +118,9 @@ CLAUDE.md   Detailed architecture notes, current status, and roadmap
 
 ## Features
 
-- Username/password login (JWT), each account's data private to that account; a mandatory
-  change-password screen after first login with a placeholder password, and a voluntary
-  one from Definições any time after that
+- Username/password login (JWT); accounts are grouped into households that share all data,
+  or stand alone if not grouped; a mandatory change-password screen after first login with
+  a placeholder password, and a voluntary one from Definições any time after that
 - Transactions (income/expense), one-time or recurring with interval (monthly/quarterly/
   yearly), day-of-month, and optional end date — recurring templates auto-backfill every
   due month up to today on creation and on a daily scheduled job
@@ -123,7 +131,9 @@ CLAUDE.md   Detailed architecture notes, current status, and roadmap
 
 ## Deployment
 
-Free tier, two services plus the existing Supabase database:
+Live, free tier, two services plus a Supabase database:
+**https://myfinance-lemon.vercel.app** (frontend) →
+**https://myfinance-gh91.onrender.com** (backend).
 
 - **Backend → [Render](https://render.com)**: new Web Service, Docker environment, root
   directory `backend` (builds `backend/Dockerfile`), deploy branch `main`. Env vars:

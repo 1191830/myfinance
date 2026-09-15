@@ -7,18 +7,32 @@ CREATE TYPE transaction_frequency AS ENUM ('ONE_TIME', 'RECURRING');
 -- Recurrence cadence for a recurring transaction template
 CREATE TYPE recurrence_interval AS ENUM ('MONTHLY', 'QUARTERLY', 'YEARLY');
 
+-- A group of users who share the same data. Never managed through the API - a migration
+-- creates one and places accounts into it, the same way accounts themselves are
+-- admin-created. Any account not explicitly grouped gets its own private household.
+CREATE TABLE households (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT
+);
+
 -- Accounts. No self-service signup - add one via a new Flyway migration.
 CREATE TABLE users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT now(),
-    must_change_password BOOLEAN NOT NULL DEFAULT false -- forces a change on next login
+    must_change_password BOOLEAN NOT NULL DEFAULT false, -- forces a change on next login
+    household_id UUID NOT NULL REFERENCES households(id)
 );
 
+-- categories/investments/recurring_transactions/transactions/saving_goals are scoped by
+-- household_id (shared within a household), not user_id. user_id stays on each row as
+-- provenance (who actually added it) but is no longer the authorization key. settings is
+-- the one exception - it stays personal to each user (display name isn't shared).
 CREATE TABLE categories (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id),
+    household_id UUID NOT NULL REFERENCES households(id),
     name TEXT NOT NULL,
     monthly_budget NUMERIC(12,2) -- optional per-category spending limit
 );
@@ -27,6 +41,7 @@ CREATE TABLE categories (
 CREATE TABLE recurring_transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id),
+    household_id UUID NOT NULL REFERENCES households(id),
     type transaction_type NOT NULL,
     frequency transaction_frequency NOT NULL DEFAULT 'RECURRING',
     recurrence_interval recurrence_interval NOT NULL,
@@ -41,6 +56,7 @@ CREATE TABLE recurring_transactions (
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id),
+    household_id UUID NOT NULL REFERENCES households(id),
     recurring_id UUID REFERENCES recurring_transactions(id) ON DELETE SET NULL,
     type transaction_type NOT NULL,
     frequency transaction_frequency NOT NULL,
@@ -53,6 +69,7 @@ CREATE TABLE transactions (
 CREATE TABLE investments (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id),
+    household_id UUID NOT NULL REFERENCES households(id),
     type TEXT NOT NULL, -- e.g., 'ETF', 'Stock', 'Crypto'
     ticker TEXT,        -- optional for automatic sync
     amount_invested NUMERIC(12, 2) NOT NULL,
@@ -65,6 +82,7 @@ CREATE TABLE investments (
 CREATE TABLE saving_goals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id),
+    household_id UUID NOT NULL REFERENCES households(id),
     name TEXT NOT NULL,
     target_amount NUMERIC(12, 2) NOT NULL,
     current_amount NUMERIC(12, 2) DEFAULT 0,
@@ -72,7 +90,8 @@ CREATE TABLE saving_goals (
     end_date DATE
 );
 
--- One row per user, created lazily on that user's first GET /api/settings.
+-- One row per user (not per household - display name stays personal), created lazily on
+-- that user's first GET /api/settings.
 CREATE TABLE settings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL UNIQUE REFERENCES users(id),
@@ -80,14 +99,14 @@ CREATE TABLE settings (
 );
 
 CREATE UNIQUE INDEX unique_username ON users (LOWER(username));
-CREATE UNIQUE INDEX unique_category_name ON categories (user_id, LOWER(name));
+CREATE UNIQUE INDEX unique_category_name ON categories (household_id, LOWER(name));
 
 -- Indexes for filtering
 CREATE INDEX idx_transaction_date ON transactions(date);
 CREATE INDEX idx_transaction_category ON transactions(category_id);
 CREATE INDEX idx_transaction_type ON transactions(type);
-CREATE INDEX idx_categories_user ON categories(user_id);
-CREATE INDEX idx_investments_user ON investments(user_id);
-CREATE INDEX idx_recurring_transactions_user ON recurring_transactions(user_id);
-CREATE INDEX idx_transactions_user ON transactions(user_id);
-CREATE INDEX idx_saving_goals_user ON saving_goals(user_id);
+CREATE INDEX idx_categories_household ON categories(household_id);
+CREATE INDEX idx_investments_household ON investments(household_id);
+CREATE INDEX idx_recurring_transactions_household ON recurring_transactions(household_id);
+CREATE INDEX idx_transactions_household ON transactions(household_id);
+CREATE INDEX idx_saving_goals_household ON saving_goals(household_id);

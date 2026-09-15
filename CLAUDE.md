@@ -2,11 +2,12 @@
 
 ## Project
 
-MyFinance — a personal finance manager for a small, fixed set of accounts (multi-user,
-each account's data isolated from the others). Track **recurring and one-time** income and
+MyFinance — a personal finance manager for a small, fixed set of accounts, grouped into
+**households**: everyone in a household shares the same data, and any account not
+explicitly grouped is isolated on its own. Track **recurring and one-time** income and
 expenses, plus investments and saving goals, and analyse cash flow by **month, quarter, and
 year**. Username/password auth via JWT; no public sign-up — accounts are admin-created (see
-Domain model → `users`).
+Domain model → `users`/`households`).
 
 ## Architecture
 
@@ -98,16 +99,24 @@ any daily run it slept through.
   `@Positive`/`@PositiveOrZero`); `exception/GlobalExceptionHandler` turns a failed `@Valid`
   into `400` + `{field: message}`. Controllers add `@Valid` to the create/update
   `@RequestBody` param.
-- **Every resource is owned by a user.** `Category`/`Investment`/`RecurringTransaction`/
-  `Transaction`/`SavingGoal`/`Settings` each carry a `@ManyToOne User user` (`@JsonIgnore`d —
-  never serialize it back to a client). Repositories expose `userId`-scoped finders
-  (`findByUserId...`, `findByIdAndUserId`) instead of unscoped ones; services call
-  `SecurityUtils.currentUserId()` and scope every query, plus set `.setUser(...)` on create.
-  Update/delete on a row owned by someone else throws the same `IllegalArgumentException` as
-  "not found" (never a `403`) so existence isn't leaked. The one unscoped path is
+- **Every shared resource is scoped by household, not by user.** `Category`/`Investment`/
+  `RecurringTransaction`/`Transaction`/`SavingGoal` each carry both a `@ManyToOne User user`
+  (`@JsonIgnore`d — provenance only, who actually created the row, never used for
+  authorization) and a bare `@Column UUID householdId` (also `@JsonIgnore`d — the real
+  scoping key; no `Household` object navigation needed, so no relationship mapping).
+  Repositories expose `householdId`-scoped finders (`findByHouseholdId...`,
+  `findByIdAndHouseholdId`) instead of unscoped ones; services inject
+  `security/CurrentHousehold` (resolves the authenticated user's `household_id` via
+  `UserRepository`, no JWT claim) and scope every query with `currentHousehold.resolve()`,
+  plus set both `.setUser(...)` (via `SecurityUtils.currentUserId()`) and
+  `.setHouseholdId(...)` on create. Update/delete on a row from someone else's household
+  throws the same `IllegalArgumentException` as "not found" (never a `403`) so existence
+  isn't leaked. **`Settings` is the one exception** — display name stays personal, scoped by
+  `SecurityUtils.currentUserId()` as before, never by household. The one unscoped path is
   `RecurringTransactionScheduler`'s daily job (no request/current-user context) — it uses
-  `RecurringTransactionRepository.findByActiveTrue()` across all users and each generated
-  `Transaction` inherits its owner from the template, not from "the current user".
+  `RecurringTransactionRepository.findByActiveTrue()` across all households and each
+  generated `Transaction` inherits both its owner and household from the template, not from
+  "the current user".
 - A `@ManyToOne` field on an incoming request body is a bare Jackson-deserialized instance,
   never loaded in the persistence context — Hibernate treats it as transient and refuses to
   flush it as a foreign key even when its id is real. The owning service must re-resolve it
@@ -134,27 +143,35 @@ any daily run it slept through.
 
 ## Domain model
 
-- `users(id, username, password_hash, created_at, must_change_password)` — case-insensitive
-  unique `username`. No self-service signup: add an account with a new Flyway migration
-  inserting a row (bcrypt the password with `BCryptPasswordEncoder` first) — set
-  `must_change_password = true` on it too, same as the seeded account, so a placeholder
-  password can't linger unnoticed. Every other table below has a `user_id` FK to this
-  table, and every unique constraint that used to be global is now per-user (e.g.
-  categories' name uniqueness is `(user_id, lower(name))`).
-- `categories(id, user_id, name, monthly_budget?)` — case-insensitive unique `name` per user;
-  budget is optional, no limit until one is set.
-- `recurring_transactions` — a template: `user_id`, `type`, `frequency`,
+- `households(id, name?)` — a group of users who share data. Never managed through the
+  API: created (and populated) only by a Flyway migration, same as accounts. An account not
+  explicitly placed in an existing household gets a fresh one of its own (see
+  `AbstractIntegrationTest.newHousehold()`/`seedUserAndLogin(mockMvc)` for how tests do the
+  same thing production migrations do).
+- `users(id, username, password_hash, created_at, must_change_password, household_id)` —
+  case-insensitive unique `username`. No self-service signup: add an account with a new
+  Flyway migration inserting a row (bcrypt the password with `BCryptPasswordEncoder` first)
+  — set `must_change_password = true` on it too, same as every seeded account, so a
+  placeholder password can't linger unnoticed, and decide deliberately whether it gets a
+  brand-new `household_id` or joins an existing one. Every other table below (except
+  `settings`) has both a `user_id` FK (provenance) and a `household_id` FK (the real scoping
+  key) to these tables; every unique constraint that used to be global is now per-household
+  (e.g. categories' name uniqueness is `(household_id, lower(name))`).
+- `categories(id, user_id, household_id, name, monthly_budget?)` — case-insensitive unique
+  `name` per household; budget is optional, no limit until one is set.
+- `recurring_transactions` — a template: `user_id`, `household_id`, `type`, `frequency`,
   `recurrence_interval` (`MONTHLY`/`QUARTERLY`/`YEARLY`), `category`, `amount`,
   `description`, `start_date` (first occurrence), `end_date?` (last occurrence), `active`.
-- `transactions` — `user_id`, `type`, `frequency`, `category`, `amount`, `date`,
-  `description`, `recurring_id?` → template (set null when the template is deleted).
-- `investments` — `user_id`, `type`, `ticker?`, `amount_invested`, `current_value`,
-  `start_date`, `notes?`, `last_synced?`.
-- `saving_goals` — `user_id`, `name`, `target_amount`, `current_amount`, `start_date`,
-  `end_date?`.
-- `settings` — one row per user (`user_id` unique): `display_name`. Lazily created on that
-  user's first `GET /api/settings` (defaulted to their username) rather than requiring a
-  separate seeding step when an account is added.
+- `transactions` — `user_id`, `household_id`, `type`, `frequency`, `category`, `amount`,
+  `date`, `description`, `recurring_id?` → template (set null when the template is deleted).
+- `investments` — `user_id`, `household_id`, `type`, `ticker?`, `amount_invested`,
+  `current_value`, `start_date`, `notes?`, `last_synced?`.
+- `saving_goals` — `user_id`, `household_id`, `name`, `target_amount`, `current_amount`,
+  `start_date`, `end_date?`.
+- `settings` — one row per **user** (`user_id` unique, deliberately *not* per household —
+  display name stays personal): `display_name`. Lazily created on that user's first
+  `GET /api/settings` (defaulted to their username) rather than requiring a separate
+  seeding step when an account is added.
 
 **Recurring behaviour:** templates live in `recurring_transactions`; a generator
 **materializes** one concrete `transactions` row per period per active template, per its
@@ -190,17 +207,21 @@ Change-password is done too, in the two shapes designed on the canvas
 used both by `page/ChangePasswordPage.tsx` (the mandatory, full-page framing —
 `router/ProtectedRoute` redirects here whenever `must_change_password` is set, currently
 true for the seeded `rui` account) and `components/forms/ChangePasswordModal.tsx` (the
-voluntary framing, opened from Definições' "Alterar palavra-passe"). Backend tests: unit
-tests (Mockito) cover the recurrence generator and the category-resolution fix in
-isolation, and Testcontainers-backed integration tests cover the same flows end to end
-through the real REST API (each test logs in through the real `/api/auth/login` flow
-first) — all 23 tests verified passing (`./mvnw test`, see Run/build above for the
+voluntary framing, opened from Definições' "Alterar palavra-passe"). Household sharing is
+done: `rui` and `rita` (both real, deployed accounts) share one household — every shared
+resource is scoped by `household_id`, `Settings` stays personal — see Conventions and
+Domain model → `households`. Backend tests: unit tests (Mockito) cover the recurrence
+generator and the category-resolution fix in isolation, and Testcontainers-backed
+integration tests cover the same flows end to end through the real REST API (each test logs
+in through the real `/api/auth/login` flow first, and `HouseholdSharingIT` specifically
+proves two accounts in one household share data while a third in a different household
+sees none of it) — all 24 tests verified passing (`./mvnw test`, see Run/build above for the
 Docker/Testcontainers version-pin this needed). Frontend has no test tooling yet.
 
 ## Roadmap
 
 1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
    backend paged `GET /api/transactions`; frontend tests (Vitest + React Testing Library,
-   deliberately left out of this round); optional data sharing between accounts (isolation
-   was chosen as the default, with the explicit intent to allow sharing later without a
-   data-model rewrite); a custom domain (Render/Vercel's default subdomains are in use).
+   deliberately left out of this round); a custom domain (Render/Vercel's default
+   subdomains are in use); a household-management UI (creating/renaming a household, moving
+   an account between households — currently a migration-only, admin operation).
