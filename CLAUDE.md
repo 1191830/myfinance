@@ -79,6 +79,13 @@ the Render URL + `/api`. Render's free tier sleeps after ~15 min idle — expect
 request after a gap; the recurring-transaction scheduler's existing catch-up logic covers
 any daily run it slept through.
 
+Auto-deploy on push depends on a GitHub *webhook* existing, which Render's GitHub App only
+creates for repos actually in its installation scope — if pushing to `main` doesn't trigger
+a deploy and the repo has no `render.com` webhook under GitHub's repo Settings → Webhooks,
+check github.com/settings/installations → Render → Configure → make sure the repo is listed
+(not just that Render's own Branch/Auto-Deploy settings look right, which they can even
+when the webhook itself is missing).
+
 ## Conventions
 
 - **Migrations are immutable.** Never edit a `V*.sql` that may already have been applied —
