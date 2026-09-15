@@ -1,7 +1,9 @@
 package com.myfinance.backend;
 
 import com.jayway.jsonpath.JsonPath;
+import com.myfinance.backend.model.Household;
 import com.myfinance.backend.model.User;
+import com.myfinance.backend.repository.HouseholdRepository;
 import com.myfinance.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
@@ -41,22 +43,28 @@ public abstract class AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private HouseholdRepository householdRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     protected record SeededUser(String username, String password, String token) {
     }
 
     /**
-     * Seeds a fresh test user and logs in through the real /api/auth/login flow, returning
-     * the username/password (for tests that need to log in again, e.g. after a password
-     * change) alongside the token.
+     * Seeds a fresh test user into the given household and logs in through the real
+     * /api/auth/login flow, returning the username/password (for tests that need to log in
+     * again, e.g. after a password change) alongside the token. Use this overload when a
+     * test needs two users sharing one household (proving sharing works) - pass the same
+     * householdId to both.
      */
-    protected SeededUser seedUserAndLogin(MockMvc mockMvc) throws Exception {
+    protected SeededUser seedUserAndLogin(MockMvc mockMvc, UUID householdId) throws Exception {
         String username = "it-user-" + UUID.randomUUID();
         String rawPassword = "test-password";
         User user = new User();
         user.setUsername(username);
         user.setPasswordHash(passwordEncoder.encode(rawPassword));
+        user.setHouseholdId(householdId);
         userRepository.save(user);
 
         String response = mockMvc.perform(post("/api/auth/login")
@@ -66,6 +74,20 @@ public abstract class AbstractIntegrationTest {
                 .andReturn().getResponse().getContentAsString();
         String token = JsonPath.read(response, "$.token");
         return new SeededUser(username, rawPassword, token);
+    }
+
+    /**
+     * Seeds a fresh test user into a brand-new, private household - the default for any
+     * new account in production too, unless a migration explicitly places it into an
+     * existing one.
+     */
+    protected SeededUser seedUserAndLogin(MockMvc mockMvc) throws Exception {
+        return seedUserAndLogin(mockMvc, newHousehold());
+    }
+
+    protected UUID newHousehold() {
+        Household household = new Household();
+        return householdRepository.save(household).getId();
     }
 
     /**

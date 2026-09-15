@@ -9,6 +9,7 @@ import com.myfinance.backend.model.User;
 import com.myfinance.backend.repository.CategoryRepository;
 import com.myfinance.backend.repository.RecurringTransactionRepository;
 import com.myfinance.backend.repository.UserRepository;
+import com.myfinance.backend.security.CurrentHousehold;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +38,7 @@ import static org.mockito.Mockito.when;
 class RecurringTransactionServiceImplTest {
 
     private static final UUID TEST_USER_ID = UUID.randomUUID();
+    private static final UUID TEST_HOUSEHOLD_ID = UUID.randomUUID();
 
     @Mock
     private RecurringTransactionRepository recurringTransactionRepository;
@@ -44,6 +46,8 @@ class RecurringTransactionServiceImplTest {
     private CategoryRepository categoryRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private CurrentHousehold currentHousehold;
     @Mock
     private TransactionService transactionService;
 
@@ -54,6 +58,7 @@ class RecurringTransactionServiceImplTest {
         User testUser = new User();
         testUser.setId(TEST_USER_ID);
         lenient().when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
+        lenient().when(currentHousehold.resolve()).thenReturn(TEST_HOUSEHOLD_ID);
     }
 
     @AfterEach
@@ -63,7 +68,7 @@ class RecurringTransactionServiceImplTest {
 
     private RecurringTransactionServiceImpl service() {
         return new RecurringTransactionServiceImpl(recurringTransactionRepository, categoryRepository,
-                userRepository, transactionService);
+                userRepository, currentHousehold, transactionService);
     }
 
     private static RecurringTransaction template() {
@@ -83,7 +88,8 @@ class RecurringTransactionServiceImplTest {
         Category realCategory = new Category();
         realCategory.setId(categoryId);
         realCategory.setName("Food");
-        when(categoryRepository.findByIdAndUserId(categoryId, TEST_USER_ID)).thenReturn(Optional.of(realCategory));
+        when(categoryRepository.findByIdAndHouseholdId(categoryId, TEST_HOUSEHOLD_ID))
+                .thenReturn(Optional.of(realCategory));
         when(recurringTransactionRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
         Category bareCategory = new Category();
@@ -101,7 +107,7 @@ class RecurringTransactionServiceImplTest {
     @Test
     void createRecurringTransaction_throwsWhenCategoryIdIsUnknown() {
         UUID unknownId = UUID.randomUUID();
-        when(categoryRepository.findByIdAndUserId(unknownId, TEST_USER_ID)).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndHouseholdId(unknownId, TEST_HOUSEHOLD_ID)).thenReturn(Optional.empty());
         Category bareCategory = new Category();
         bareCategory.setId(unknownId);
         RecurringTransaction transaction = template();

@@ -11,6 +11,7 @@ import com.myfinance.backend.repository.CategoryRepository;
 import com.myfinance.backend.repository.RecurringTransactionRepository;
 import com.myfinance.backend.repository.TransactionRepository;
 import com.myfinance.backend.repository.UserRepository;
+import com.myfinance.backend.security.CurrentHousehold;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,6 +42,7 @@ import static org.mockito.Mockito.when;
 class TransactionServiceImplTest {
 
     private static final UUID TEST_USER_ID = UUID.randomUUID();
+    private static final UUID TEST_HOUSEHOLD_ID = UUID.randomUUID();
 
     @Mock
     private TransactionRepository transactionRepository;
@@ -50,11 +52,14 @@ class TransactionServiceImplTest {
     private CategoryRepository categoryRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private CurrentHousehold currentHousehold;
 
     @BeforeEach
     void setUpSecurityContext() {
         SecurityContextHolder.getContext().setAuthentication(
                 new UsernamePasswordAuthenticationToken(TEST_USER_ID, null, List.of()));
+        when(currentHousehold.resolve()).thenReturn(TEST_HOUSEHOLD_ID);
     }
 
     @AfterEach
@@ -65,7 +70,7 @@ class TransactionServiceImplTest {
     private TransactionServiceImpl service(LocalDate today) {
         Clock clock = Clock.fixed(today.atStartOfDay(ZoneOffset.UTC).toInstant(), ZoneOffset.UTC);
         return new TransactionServiceImpl(transactionRepository, recurringTransactionRepository,
-                categoryRepository, userRepository, clock);
+                categoryRepository, userRepository, currentHousehold, clock);
     }
 
     private static RecurringTransaction template(LocalDate startDate, LocalDate endDate,
@@ -88,7 +93,8 @@ class TransactionServiceImplTest {
     @Test
     void generateMonthlyTransactions_backfillsEveryMonthUpToToday() {
         RecurringTransaction template = template(LocalDate.of(2026, 1, 15), null, RecurrenceInterval.MONTHLY);
-        when(recurringTransactionRepository.findByUserIdAndActiveTrue(TEST_USER_ID)).thenReturn(List.of(template));
+        when(recurringTransactionRepository.findByHouseholdIdAndActiveTrue(TEST_HOUSEHOLD_ID))
+                .thenReturn(List.of(template));
         when(transactionRepository.existsByRecurringTransactionAndDateBetween(any(), any(), any()))
                 .thenReturn(false);
 
@@ -104,7 +110,8 @@ class TransactionServiceImplTest {
     @Test
     void generateMonthlyTransactions_clampsDayOfMonthWhenTargetMonthIsShorter() {
         RecurringTransaction template = template(LocalDate.of(2026, 1, 31), null, RecurrenceInterval.MONTHLY);
-        when(recurringTransactionRepository.findByUserIdAndActiveTrue(TEST_USER_ID)).thenReturn(List.of(template));
+        when(recurringTransactionRepository.findByHouseholdIdAndActiveTrue(TEST_HOUSEHOLD_ID))
+                .thenReturn(List.of(template));
         when(transactionRepository.existsByRecurringTransactionAndDateBetween(any(), any(), any()))
                 .thenReturn(false);
 
@@ -121,7 +128,8 @@ class TransactionServiceImplTest {
     @Test
     void generateMonthlyTransactions_quarterlyStepsThreeMonths() {
         RecurringTransaction template = template(LocalDate.of(2026, 1, 10), null, RecurrenceInterval.QUARTERLY);
-        when(recurringTransactionRepository.findByUserIdAndActiveTrue(TEST_USER_ID)).thenReturn(List.of(template));
+        when(recurringTransactionRepository.findByHouseholdIdAndActiveTrue(TEST_HOUSEHOLD_ID))
+                .thenReturn(List.of(template));
         when(transactionRepository.existsByRecurringTransactionAndDateBetween(any(), any(), any()))
                 .thenReturn(false);
 
@@ -138,7 +146,8 @@ class TransactionServiceImplTest {
     void generateMonthlyTransactions_stopsAtEndDate() {
         RecurringTransaction template = template(LocalDate.of(2026, 1, 10), LocalDate.of(2026, 2, 28),
                 RecurrenceInterval.MONTHLY);
-        when(recurringTransactionRepository.findByUserIdAndActiveTrue(TEST_USER_ID)).thenReturn(List.of(template));
+        when(recurringTransactionRepository.findByHouseholdIdAndActiveTrue(TEST_HOUSEHOLD_ID))
+                .thenReturn(List.of(template));
         when(transactionRepository.existsByRecurringTransactionAndDateBetween(any(), any(), any()))
                 .thenReturn(false);
 
@@ -151,7 +160,8 @@ class TransactionServiceImplTest {
     @Test
     void generateMonthlyTransactions_isIdempotentWhenPeriodAlreadyExists() {
         RecurringTransaction template = template(LocalDate.of(2026, 1, 10), null, RecurrenceInterval.MONTHLY);
-        when(recurringTransactionRepository.findByUserIdAndActiveTrue(TEST_USER_ID)).thenReturn(List.of(template));
+        when(recurringTransactionRepository.findByHouseholdIdAndActiveTrue(TEST_HOUSEHOLD_ID))
+                .thenReturn(List.of(template));
         when(transactionRepository.existsByRecurringTransactionAndDateBetween(any(), any(), any()))
                 .thenReturn(true);
 
@@ -164,7 +174,8 @@ class TransactionServiceImplTest {
     @Test
     void generateMonthlyTransactions_generatesNothingForAFutureStartDate() {
         RecurringTransaction template = template(LocalDate.of(2027, 1, 1), null, RecurrenceInterval.MONTHLY);
-        when(recurringTransactionRepository.findByUserIdAndActiveTrue(TEST_USER_ID)).thenReturn(List.of(template));
+        when(recurringTransactionRepository.findByHouseholdIdAndActiveTrue(TEST_HOUSEHOLD_ID))
+                .thenReturn(List.of(template));
 
         int created = service(LocalDate.of(2026, 6, 1)).generateMonthlyTransactions();
 
@@ -180,7 +191,8 @@ class TransactionServiceImplTest {
         Category realCategory = new Category();
         realCategory.setId(categoryId);
         realCategory.setName("Food");
-        when(categoryRepository.findByIdAndUserId(categoryId, TEST_USER_ID)).thenReturn(Optional.of(realCategory));
+        when(categoryRepository.findByIdAndHouseholdId(categoryId, TEST_HOUSEHOLD_ID))
+                .thenReturn(Optional.of(realCategory));
         User testUser = new User();
         testUser.setId(TEST_USER_ID);
         when(userRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
@@ -222,7 +234,7 @@ class TransactionServiceImplTest {
     @Test
     void createTransaction_throwsWhenCategoryIdIsUnknown() {
         UUID unknownId = UUID.randomUUID();
-        when(categoryRepository.findByIdAndUserId(unknownId, TEST_USER_ID)).thenReturn(Optional.empty());
+        when(categoryRepository.findByIdAndHouseholdId(unknownId, TEST_HOUSEHOLD_ID)).thenReturn(Optional.empty());
         Category bareCategory = new Category();
         bareCategory.setId(unknownId);
         Transaction transaction = new Transaction();
