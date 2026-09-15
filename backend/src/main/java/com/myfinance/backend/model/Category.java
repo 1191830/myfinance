@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "categories", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"user_id", "name"})
+        @UniqueConstraint(columnNames = {"household_id", "name"})
 })
 public class Category {
 
@@ -30,6 +30,10 @@ public class Category {
     @JsonIgnore
     private User user;
 
+    @Column(name = "household_id", nullable = false)
+    @JsonIgnore
+    private UUID householdId;
+
     // getters and setters
     public UUID getId() { return id; }
     public void setId(UUID id) { this.id = id; }
@@ -42,4 +46,7 @@ public class Category {
 
     public User getUser() { return user; }
     public void setUser(User user) { this.user = user; }
+
+    public UUID getHouseholdId() { return householdId; }
+    public void setHouseholdId(UUID householdId) { this.householdId = householdId; }
 }

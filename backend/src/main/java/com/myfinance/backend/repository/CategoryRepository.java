@@ -9,14 +9,14 @@ import java.util.UUID;
 
 public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
-    Optional<Category> findByIdAndUserId(UUID id, UUID userId);
+    Optional<Category> findByIdAndHouseholdId(UUID id, UUID householdId);
 
-    // Verificar se existe categoria pelo nome (case insensitive), para este utilizador
-    boolean existsByUserIdAndNameIgnoreCase(UUID userId, String name);
+    // Verificar se existe categoria pelo nome (case insensitive), para este agregado familiar
+    boolean existsByHouseholdIdAndNameIgnoreCase(UUID householdId, String name);
 
-    // Buscar categorias por lista de nomes (case insensitive), para este utilizador
-    List<Category> findByUserIdAndNameInIgnoreCase(UUID userId, List<String> names);
+    // Buscar categorias por lista de nomes (case insensitive), para este agregado familiar
+    List<Category> findByHouseholdIdAndNameInIgnoreCase(UUID householdId, List<String> names);
 
-    // Buscar todas as categorias deste utilizador ordenadas por nome
-    List<Category> findByUserIdOrderByNameAsc(UUID userId);
+    // Buscar todas as categorias deste agregado familiar ordenadas por nome
+    List<Category> findByHouseholdIdOrderByNameAsc(UUID householdId);
 }

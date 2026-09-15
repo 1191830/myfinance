@@ -11,7 +11,7 @@ import com.myfinance.backend.model.TransactionType;
 import com.myfinance.backend.repository.InvestmentRepository;
 import com.myfinance.backend.repository.SavingGoalRepository;
 import com.myfinance.backend.repository.TransactionRepository;
-import com.myfinance.backend.security.SecurityUtils;
+import com.myfinance.backend.security.CurrentHousehold;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -35,22 +35,25 @@ public class ReportServiceImpl implements ReportService {
     private final TransactionRepository transactionRepository;
     private final InvestmentRepository investmentRepository;
     private final SavingGoalRepository savingGoalRepository;
+    private final CurrentHousehold currentHousehold;
 
     public ReportServiceImpl(TransactionRepository transactionRepository,
             InvestmentRepository investmentRepository,
-            SavingGoalRepository savingGoalRepository) {
+            SavingGoalRepository savingGoalRepository,
+            CurrentHousehold currentHousehold) {
         this.transactionRepository = transactionRepository;
         this.investmentRepository = investmentRepository;
         this.savingGoalRepository = savingGoalRepository;
+        this.currentHousehold = currentHousehold;
     }
 
     @Override
     public NetWorthSummary getNetWorth() {
-        UUID userId = SecurityUtils.currentUserId();
-        BigDecimal investments = investmentRepository.findByUserId(userId).stream()
+        UUID householdId = currentHousehold.resolve();
+        BigDecimal investments = investmentRepository.findByHouseholdId(householdId).stream()
                 .map(i -> nz(i.getCurrentValue()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal savings = savingGoalRepository.findByUserIdOrderByStartDateDesc(userId).stream()
+        BigDecimal savings = savingGoalRepository.findByHouseholdIdOrderByStartDateDesc(householdId).stream()
                 .map(g -> nz(g.getCurrentAmount()))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
         return new NetWorthSummary(scale2(investments), scale2(savings),
@@ -82,8 +85,8 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public List<CashflowBucket> getCashflow(LocalDate from, LocalDate to, Granularity granularity) {
-        List<Transaction> txns = transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
-                SecurityUtils.currentUserId(), from, to);
+        List<Transaction> txns = transactionRepository.findByHouseholdIdAndDateBetweenOrderByDateDesc(
+                currentHousehold.resolve(), from, to);
         List<CashflowBucket> buckets = new ArrayList<>();
         for (LocalDate[] span : spans(from, to, granularity)) {
             LocalDate start = span[0];
@@ -110,8 +113,8 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public List<CategoryTotal> getCategoryTotals(LocalDate from, LocalDate to, TransactionType type) {
         Map<UUID, Acc> byCategory = new LinkedHashMap<>();
-        for (Transaction t : transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
-                SecurityUtils.currentUserId(), from, to)) {
+        for (Transaction t : transactionRepository.findByHouseholdIdAndDateBetweenOrderByDateDesc(
+                currentHousehold.resolve(), from, to)) {
             if (t.getType() != type) {
                 continue;
             }
@@ -134,8 +137,8 @@ public class ReportServiceImpl implements ReportService {
     private Totals totals(LocalDate from, LocalDate to) {
         BigDecimal income = BigDecimal.ZERO;
         BigDecimal expense = BigDecimal.ZERO;
-        for (Transaction t : transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
-                SecurityUtils.currentUserId(), from, to)) {
+        for (Transaction t : transactionRepository.findByHouseholdIdAndDateBetweenOrderByDateDesc(
+                currentHousehold.resolve(), from, to)) {
             if (t.getType() == TransactionType.INCOME) {
                 income = income.add(nz(t.getAmount()));
             } else {

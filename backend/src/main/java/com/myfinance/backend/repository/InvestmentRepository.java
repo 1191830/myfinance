@@ -10,19 +10,21 @@ import java.util.UUID;
 
 public interface InvestmentRepository extends JpaRepository<Investment, UUID> {
 
-    List<Investment> findByUserId(UUID userId);
+    List<Investment> findByHouseholdId(UUID householdId);
 
-    Optional<Investment> findByIdAndUserId(UUID id, UUID userId);
+    Optional<Investment> findByIdAndHouseholdId(UUID id, UUID householdId);
 
-    // Encontrar investimentos por tipo (ex: ETF, Stock, Crypto), deste utilizador
-    List<Investment> findByUserIdAndTypeIgnoreCaseOrderByStartDateDesc(UUID userId, String type);
+    // Encontrar investimentos por tipo (ex: ETF, Stock, Crypto), deste agregado familiar
+    List<Investment> findByHouseholdIdAndTypeIgnoreCaseOrderByStartDateDesc(UUID householdId, String type);
 
-    // Encontrar investimento por ticker, deste utilizador
-    List<Investment> findByUserIdAndTickerIgnoreCase(UUID userId, String ticker);
+    // Encontrar investimento por ticker, deste agregado familiar
+    List<Investment> findByHouseholdIdAndTickerIgnoreCase(UUID householdId, String ticker);
 
     // Encontrar investimentos cujo valor atual está acima de um determinado valor
-    List<Investment> findByUserIdAndCurrentValueGreaterThanOrderByCurrentValueDesc(UUID userId, Double amount);
+    List<Investment> findByHouseholdIdAndCurrentValueGreaterThanOrderByCurrentValueDesc(
+            UUID householdId, Double amount);
 
     // Encontrar investimentos que foram sincronizados antes de uma certa data
-    List<Investment> findByUserIdAndLastSyncedBeforeOrderByLastSyncedAsc(UUID userId, LocalDateTime dateTime);
+    List<Investment> findByHouseholdIdAndLastSyncedBeforeOrderByLastSyncedAsc(
+            UUID householdId, LocalDateTime dateTime);
 }

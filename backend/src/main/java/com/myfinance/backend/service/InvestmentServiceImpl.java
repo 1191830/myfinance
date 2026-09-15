@@ -4,6 +4,7 @@ import com.myfinance.backend.model.Investment;
 import com.myfinance.backend.model.User;
 import com.myfinance.backend.repository.InvestmentRepository;
 import com.myfinance.backend.repository.UserRepository;
+import com.myfinance.backend.security.CurrentHousehold;
 import com.myfinance.backend.security.SecurityUtils;
 import org.springframework.stereotype.Service;
 
@@ -17,20 +18,23 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     private final InvestmentRepository investmentRepository;
     private final UserRepository userRepository;
+    private final CurrentHousehold currentHousehold;
 
-    public InvestmentServiceImpl(InvestmentRepository investmentRepository, UserRepository userRepository) {
+    public InvestmentServiceImpl(InvestmentRepository investmentRepository, UserRepository userRepository,
+            CurrentHousehold currentHousehold) {
         this.investmentRepository = investmentRepository;
         this.userRepository = userRepository;
+        this.currentHousehold = currentHousehold;
     }
 
     @Override
     public List<Investment> getAllInvestments() {
-        return investmentRepository.findByUserId(SecurityUtils.currentUserId());
+        return investmentRepository.findByHouseholdId(currentHousehold.resolve());
     }
 
     @Override
     public Optional<Investment> getInvestmentById(UUID id) {
-        return investmentRepository.findByIdAndUserId(id, SecurityUtils.currentUserId());
+        return investmentRepository.findByIdAndHouseholdId(id, currentHousehold.resolve());
     }
 
     @Override
@@ -38,12 +42,13 @@ public class InvestmentServiceImpl implements InvestmentService {
         User user = userRepository.findById(SecurityUtils.currentUserId())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user no longer exists."));
         investment.setUser(user);
+        investment.setHouseholdId(currentHousehold.resolve());
         return investmentRepository.save(investment);
     }
 
     @Override
     public Investment updateInvestment(UUID id, Investment investment) {
-        return investmentRepository.findByIdAndUserId(id, SecurityUtils.currentUserId())
+        return investmentRepository.findByIdAndHouseholdId(id, currentHousehold.resolve())
                 .map(existing -> {
                     existing.setType(investment.getType());
                     existing.setTicker(investment.getTicker());
@@ -58,31 +63,31 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     @Override
     public void deleteInvestment(UUID id) {
-        Investment existing = investmentRepository.findByIdAndUserId(id, SecurityUtils.currentUserId())
+        Investment existing = investmentRepository.findByIdAndHouseholdId(id, currentHousehold.resolve())
                 .orElseThrow(() -> new IllegalArgumentException("Investment not found."));
         investmentRepository.delete(existing);
     }
 
     @Override
     public List<Investment> getInvestmentsByType(String type) {
-        return investmentRepository.findByUserIdAndTypeIgnoreCaseOrderByStartDateDesc(
-                SecurityUtils.currentUserId(), type);
+        return investmentRepository.findByHouseholdIdAndTypeIgnoreCaseOrderByStartDateDesc(
+                currentHousehold.resolve(), type);
     }
 
     @Override
     public List<Investment> getInvestmentsByTicker(String ticker) {
-        return investmentRepository.findByUserIdAndTickerIgnoreCase(SecurityUtils.currentUserId(), ticker);
+        return investmentRepository.findByHouseholdIdAndTickerIgnoreCase(currentHousehold.resolve(), ticker);
     }
 
     @Override
     public List<Investment> getInvestmentsByCurrentValueGreaterThan(Double amount) {
-        return investmentRepository.findByUserIdAndCurrentValueGreaterThanOrderByCurrentValueDesc(
-                SecurityUtils.currentUserId(), amount);
+        return investmentRepository.findByHouseholdIdAndCurrentValueGreaterThanOrderByCurrentValueDesc(
+                currentHousehold.resolve(), amount);
     }
 
     @Override
     public List<Investment> getInvestmentsLastSyncedBefore(LocalDateTime dateTime) {
-        return investmentRepository.findByUserIdAndLastSyncedBeforeOrderByLastSyncedAsc(
-                SecurityUtils.currentUserId(), dateTime);
+        return investmentRepository.findByHouseholdIdAndLastSyncedBeforeOrderByLastSyncedAsc(
+                currentHousehold.resolve(), dateTime);
     }
 }

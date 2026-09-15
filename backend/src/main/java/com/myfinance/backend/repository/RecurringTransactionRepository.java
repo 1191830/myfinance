@@ -9,13 +9,13 @@ import java.util.UUID;
 
 public interface RecurringTransactionRepository extends JpaRepository<RecurringTransaction, UUID> {
 
-    Optional<RecurringTransaction> findByIdAndUserId(UUID id, UUID userId);
+    Optional<RecurringTransaction> findByIdAndHouseholdId(UUID id, UUID householdId);
 
-    List<RecurringTransaction> findByUserId(UUID userId);
+    List<RecurringTransaction> findByHouseholdId(UUID householdId);
 
-    // Scoped to one user - used by the manual "generate" endpoint and template listings.
-    List<RecurringTransaction> findByUserIdAndActiveTrue(UUID userId);
+    // Scoped to one household - used by the manual "generate" endpoint and template listings.
+    List<RecurringTransaction> findByHouseholdIdAndActiveTrue(UUID householdId);
 
-    // Unscoped, all users - used only by the daily scheduler, which has no "current user".
+    // Unscoped, all households - used only by the daily scheduler, which has no "current user".
     List<RecurringTransaction> findByActiveTrue();
 }

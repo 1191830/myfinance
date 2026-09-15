@@ -12,28 +12,30 @@ import java.util.UUID;
 
 public interface TransactionRepository extends JpaRepository<Transaction, UUID> {
 
-    Optional<Transaction> findByIdAndUserId(UUID id, UUID userId);
+    Optional<Transaction> findByIdAndHouseholdId(UUID id, UUID householdId);
 
-    // Buscar transações deste utilizador, mais recentes primeiro
-    List<Transaction> findByUserIdOrderByDateDesc(UUID userId);
+    // Buscar transações deste agregado familiar, mais recentes primeiro
+    List<Transaction> findByHouseholdIdOrderByDateDesc(UUID householdId);
 
     // Buscar transações por tipo (INCOME ou EXPENSE)
-    List<Transaction> findByUserIdAndTypeOrderByDateDesc(UUID userId, TransactionType type);
+    List<Transaction> findByHouseholdIdAndTypeOrderByDateDesc(UUID householdId, TransactionType type);
 
     // Buscar transações por categoria
-    List<Transaction> findByUserIdAndCategoryIdOrderByDateDesc(UUID userId, UUID categoryId);
+    List<Transaction> findByHouseholdIdAndCategoryIdOrderByDateDesc(UUID householdId, UUID categoryId);
 
     // Buscar transações por intervalo de datas
-    List<Transaction> findByUserIdAndDateBetweenOrderByDateDesc(UUID userId, LocalDate startDate, LocalDate endDate);
+    List<Transaction> findByHouseholdIdAndDateBetweenOrderByDateDesc(
+            UUID householdId, LocalDate startDate, LocalDate endDate);
 
     // Buscar transações frequentes (recorrentes)
-    List<Transaction> findByUserIdAndFrequencyOrderByDateDesc(UUID userId, String frequency);
+    List<Transaction> findByHouseholdIdAndFrequencyOrderByDateDesc(UUID householdId, String frequency);
 
     // Buscar transações por descrição contendo texto (case insensitive)
-    List<Transaction> findByUserIdAndDescriptionIgnoreCaseContainingOrderByDateDesc(UUID userId, String description);
+    List<Transaction> findByHouseholdIdAndDescriptionIgnoreCaseContainingOrderByDateDesc(
+            UUID householdId, String description);
 
     // Idempotência do gerador: já existe uma transação deste template neste período? O
-    // template já pertence a um utilizador, por isso não precisa de escopo adicional aqui.
+    // template já pertence a um agregado familiar, por isso não precisa de escopo adicional aqui.
     boolean existsByRecurringTransactionAndDateBetween(RecurringTransaction recurringTransaction,
             LocalDate start, LocalDate end);
 }

@@ -43,6 +43,10 @@ public class SavingGoal {
     @JsonIgnore
     private User user;
 
+    @Column(name = "household_id", nullable = false)
+    @JsonIgnore
+    private UUID householdId;
+
     // getters and setters
 
     public User getUser() {
@@ -51,6 +55,14 @@ public class SavingGoal {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public UUID getHouseholdId() {
+        return householdId;
+    }
+
+    public void setHouseholdId(UUID householdId) {
+        this.householdId = householdId;
     }
 
     public UUID getId() {

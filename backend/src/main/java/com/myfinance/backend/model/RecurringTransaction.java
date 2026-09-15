@@ -63,12 +63,24 @@ public class RecurringTransaction {
     @JsonIgnore
     private User user;
 
+    @Column(name = "household_id", nullable = false)
+    @JsonIgnore
+    private UUID householdId;
+
     public User getUser() {
         return user;
     }
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public UUID getHouseholdId() {
+        return householdId;
+    }
+
+    public void setHouseholdId(UUID householdId) {
+        this.householdId = householdId;
     }
 
     public UUID getId() {

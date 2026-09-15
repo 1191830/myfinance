@@ -9,6 +9,7 @@ import com.myfinance.backend.repository.CategoryRepository;
 import com.myfinance.backend.repository.RecurringTransactionRepository;
 import com.myfinance.backend.repository.TransactionRepository;
 import com.myfinance.backend.repository.UserRepository;
+import com.myfinance.backend.security.CurrentHousehold;
 import com.myfinance.backend.security.SecurityUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,15 +27,18 @@ public class TransactionServiceImpl implements TransactionService {
     private final RecurringTransactionRepository recurringTransactionRepository;
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final CurrentHousehold currentHousehold;
     private final Clock clock;
 
     public TransactionServiceImpl(TransactionRepository transactionRepository,
             RecurringTransactionRepository recurringTransactionRepository,
-            CategoryRepository categoryRepository, UserRepository userRepository, Clock clock) {
+            CategoryRepository categoryRepository, UserRepository userRepository,
+            CurrentHousehold currentHousehold, Clock clock) {
         this.transactionRepository = transactionRepository;
         this.recurringTransactionRepository = recurringTransactionRepository;
         this.categoryRepository = categoryRepository;
         this.userRepository = userRepository;
+        this.currentHousehold = currentHousehold;
         this.clock = clock;
     }
 
@@ -43,44 +47,45 @@ public class TransactionServiceImpl implements TransactionService {
      * request body - a bare, never-loaded Category instance. Hibernate can't tell that
      * apart from a genuinely transient row (UUID ids have no "unsaved-value" signal) and
      * refuses to flush it as a foreign key, so re-resolve it against the real row (or null)
-     * before saving. Scoped to the current user so a category id can't be used to link a
-     * transaction to someone else's category.
+     * before saving. Scoped to the household - either person can post against either
+     * person's categories, since categories are shared too.
      */
-    private void resolveCategory(Transaction transaction, UUID userId) {
+    private void resolveCategory(Transaction transaction, UUID householdId) {
         Category category = transaction.getCategory();
         if (category == null || category.getId() == null) {
             transaction.setCategory(null);
             return;
         }
-        transaction.setCategory(categoryRepository.findByIdAndUserId(category.getId(), userId)
+        transaction.setCategory(categoryRepository.findByIdAndHouseholdId(category.getId(), householdId)
                 .orElseThrow(() -> new IllegalArgumentException("Category not found.")));
     }
 
     @Override
     public List<Transaction> getAllTransactions() {
-        return transactionRepository.findByUserIdOrderByDateDesc(SecurityUtils.currentUserId());
+        return transactionRepository.findByHouseholdIdOrderByDateDesc(currentHousehold.resolve());
     }
 
     @Override
     public Optional<Transaction> getTransactionById(UUID id) {
-        return transactionRepository.findByIdAndUserId(id, SecurityUtils.currentUserId());
+        return transactionRepository.findByIdAndHouseholdId(id, currentHousehold.resolve());
     }
 
     @Override
     public Transaction createTransaction(Transaction transaction) {
-        UUID userId = SecurityUtils.currentUserId();
-        resolveCategory(transaction, userId);
-        User user = userRepository.findById(userId)
+        UUID householdId = currentHousehold.resolve();
+        resolveCategory(transaction, householdId);
+        User user = userRepository.findById(SecurityUtils.currentUserId())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user no longer exists."));
         transaction.setUser(user);
+        transaction.setHouseholdId(householdId);
         return transactionRepository.save(transaction);
     }
 
     @Override
     public Transaction updateTransaction(UUID id, Transaction transaction) {
-        UUID userId = SecurityUtils.currentUserId();
-        resolveCategory(transaction, userId);
-        return transactionRepository.findByIdAndUserId(id, userId)
+        UUID householdId = currentHousehold.resolve();
+        resolveCategory(transaction, householdId);
+        return transactionRepository.findByIdAndHouseholdId(id, householdId)
                 .map(existing -> {
                     existing.setType(transaction.getType());
                     existing.setFrequency(transaction.getFrequency());
@@ -94,45 +99,45 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public void deleteTransaction(UUID id) {
-        Transaction existing = transactionRepository.findByIdAndUserId(id, SecurityUtils.currentUserId())
+        Transaction existing = transactionRepository.findByIdAndHouseholdId(id, currentHousehold.resolve())
                 .orElseThrow(() -> new IllegalArgumentException("Transaction not found."));
         transactionRepository.delete(existing);
     }
 
     @Override
     public List<Transaction> getTransactionsByCategoryId(UUID categoryId) {
-        return transactionRepository.findByUserIdAndCategoryIdOrderByDateDesc(
-                SecurityUtils.currentUserId(), categoryId);
+        return transactionRepository.findByHouseholdIdAndCategoryIdOrderByDateDesc(
+                currentHousehold.resolve(), categoryId);
     }
 
     @Override
     public List<Transaction> getTransactionsByType(TransactionType type) {
-        return transactionRepository.findByUserIdAndTypeOrderByDateDesc(SecurityUtils.currentUserId(), type);
+        return transactionRepository.findByHouseholdIdAndTypeOrderByDateDesc(currentHousehold.resolve(), type);
     }
 
     @Override
     public List<Transaction> getTransactionsByDateRange(LocalDate startDate, LocalDate endDate) {
-        return transactionRepository.findByUserIdAndDateBetweenOrderByDateDesc(
-                SecurityUtils.currentUserId(), startDate, endDate);
+        return transactionRepository.findByHouseholdIdAndDateBetweenOrderByDateDesc(
+                currentHousehold.resolve(), startDate, endDate);
     }
 
     @Override
     public List<Transaction> getTransactionsByFrequency(String frequency) {
-        return transactionRepository.findByUserIdAndFrequencyOrderByDateDesc(
-                SecurityUtils.currentUserId(), frequency);
+        return transactionRepository.findByHouseholdIdAndFrequencyOrderByDateDesc(
+                currentHousehold.resolve(), frequency);
     }
 
     @Override
     public List<Transaction> getTransactionsByDescription(String description) {
-        return transactionRepository.findByUserIdAndDescriptionIgnoreCaseContainingOrderByDateDesc(
-                SecurityUtils.currentUserId(), description);
+        return transactionRepository.findByHouseholdIdAndDescriptionIgnoreCaseContainingOrderByDateDesc(
+                currentHousehold.resolve(), description);
     }
 
     @Override
     @Transactional
     public int generateMonthlyTransactions() {
         List<RecurringTransaction> activeRecurring =
-                recurringTransactionRepository.findByUserIdAndActiveTrue(SecurityUtils.currentUserId());
+                recurringTransactionRepository.findByHouseholdIdAndActiveTrue(currentHousehold.resolve());
         return generateFor(activeRecurring);
     }
 
@@ -150,8 +155,8 @@ public class TransactionServiceImpl implements TransactionService {
      * "last generated" state), bounded by endDate, and never generates into the future.
      * Also doubles as catch-up: if this hasn't run in a while, every missed period in
      * between gets materialized on the next call. Each generated Transaction inherits its
-     * owner from the template, not from "the current user" - the scheduler that calls the
-     * all-users variant has no current user at all.
+     * owner and household from the template, not from "the current user" - the scheduler
+     * that calls the all-users variant has no current user at all.
      */
     private int generateFor(List<RecurringTransaction> activeRecurring) {
         LocalDate today = LocalDate.now(clock);
@@ -186,6 +191,7 @@ public class TransactionServiceImpl implements TransactionService {
                     Transaction t = new Transaction();
                     t.setRecurringTransaction(template);
                     t.setUser(template.getUser());
+                    t.setHouseholdId(template.getHouseholdId());
                     t.setType(template.getType());
                     t.setFrequency(template.getFrequency());
                     t.setCategory(template.getCategory());

@@ -29,6 +29,9 @@ public class User {
     @Column(name = "must_change_password", nullable = false)
     private boolean mustChangePassword;
 
+    @Column(name = "household_id", nullable = false)
+    private UUID householdId;
+
     public UUID getId() {
         return id;
     }
@@ -67,5 +70,13 @@ public class User {
 
     public void setMustChangePassword(boolean mustChangePassword) {
         this.mustChangePassword = mustChangePassword;
+    }
+
+    public UUID getHouseholdId() {
+        return householdId;
+    }
+
+    public void setHouseholdId(UUID householdId) {
+        this.householdId = householdId;
     }
 }
