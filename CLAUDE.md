@@ -231,12 +231,19 @@ note its explicit `afterEach(cleanup)`, needed because `globals: false` means RT
 ambient-`afterEach` auto-cleanup never registers, so renders would otherwise leak across
 tests in the same file), covering `lib/format.ts`/`lib/period.ts`/`lib/apiError.ts`,
 `context/AuthContext.tsx`, and `components/forms/ChangePasswordForm.tsx` — 36 tests, `npm
-run test`. Broader page-level coverage is still future work.
+run test`. Broader page-level coverage is still future work. Transaction listing is
+backend-paged: `GET /api/transactions/paged` combines a `TransactionSpecifications`-built
+filter (type/category/frequency/description) with `Pageable`, returned as a
+`PagedModel<Transaction>`; `TransactionsListPage.tsx` drives its table, filters, search and
+`Pagination` control entirely from this endpoint via `useTransactionsPage`. This is
+additive — the original unpaged `GET /api/transactions` (and the `useTransactions()` hook)
+is untouched and still backs Overview/MonthDetail/CategoryList, which need whole-list or
+whole-month semantics a generic page can't give them.
 
 ## Roadmap
 
 1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
-   backend paged `GET /api/transactions`; broader frontend test coverage beyond the current
-   foundation (page-level/route tests); a custom domain (Render/Vercel's default subdomains
-   are in use); a household-management UI (creating/renaming a household, moving an account
-   between households — currently a migration-only, admin operation).
+   broader frontend test coverage beyond the current foundation (page-level/route tests);
+   a custom domain (Render/Vercel's default subdomains are in use); a household-management
+   UI (creating/renaming a household, moving an account between households — currently a
+   migration-only, admin operation).

@@ -3,14 +3,19 @@ package com.myfinance.backend.service;
 import com.myfinance.backend.model.Category;
 import com.myfinance.backend.model.RecurringTransaction;
 import com.myfinance.backend.model.Transaction;
+import com.myfinance.backend.model.TransactionFrequency;
 import com.myfinance.backend.model.TransactionType;
 import com.myfinance.backend.model.User;
 import com.myfinance.backend.repository.CategoryRepository;
 import com.myfinance.backend.repository.RecurringTransactionRepository;
 import com.myfinance.backend.repository.TransactionRepository;
+import com.myfinance.backend.repository.TransactionSpecifications;
 import com.myfinance.backend.repository.UserRepository;
 import com.myfinance.backend.security.CurrentHousehold;
 import com.myfinance.backend.security.SecurityUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,6 +68,18 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public List<Transaction> getAllTransactions() {
         return transactionRepository.findByHouseholdIdOrderByDateDesc(currentHousehold.resolve());
+    }
+
+    @Override
+    public Page<Transaction> getTransactionsPage(Pageable pageable, TransactionType type, UUID categoryId,
+            TransactionFrequency frequency, String search) {
+        Specification<Transaction> spec = Specification
+                .where(TransactionSpecifications.householdId(currentHousehold.resolve()))
+                .and(TransactionSpecifications.type(type))
+                .and(TransactionSpecifications.categoryId(categoryId))
+                .and(TransactionSpecifications.frequency(frequency))
+                .and(TransactionSpecifications.descriptionContains(search));
+        return transactionRepository.findAll(spec, pageable);
     }
 
     @Override

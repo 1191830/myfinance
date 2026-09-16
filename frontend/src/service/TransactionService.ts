@@ -1,11 +1,27 @@
 import type { AxiosError } from 'axios';
 import api from '../config/axios';
-import type { TransactionModel, TransactionType, Frequency } from '../model/TransactionModel';
+import type { TransactionModel, TransactionType, Frequency, PagedResponse } from '../model/TransactionModel';
 
 const ENDPOINT = '/transactions';
 
 export const getAllTransactions = async (): Promise<TransactionModel[]> => {
   const response = await api.get<TransactionModel[]>(ENDPOINT);
+  return response.data;
+};
+
+export interface TransactionsPageParams {
+  page: number; // 0-based
+  size: number;
+  type?: TransactionType;
+  categoryId?: string;
+  frequency?: Frequency;
+  search?: string;
+}
+
+export const getTransactionsPage = async (
+  params: TransactionsPageParams,
+): Promise<PagedResponse<TransactionModel>> => {
+  const response = await api.get<PagedResponse<TransactionModel>>(`${ENDPOINT}/paged`, { params });
   return response.data;
 };
 

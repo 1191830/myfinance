@@ -1,6 +1,17 @@
 export type TransactionType = 'INCOME' | 'EXPENSE';
 export type Frequency = 'ONE_TIME' | 'RECURRING';
 
+// Matches Spring Data's PagedModel JSON shape ({content, page: {...}}).
+export interface PagedResponse<T> {
+  content: T[];
+  page: {
+    size: number;
+    number: number;
+    totalElements: number;
+    totalPages: number;
+  };
+}
+
 export interface TransactionModel {
   id: string;
   type: TransactionType;

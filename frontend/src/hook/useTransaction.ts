@@ -1,6 +1,6 @@
 // hooks/useTransaction.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { TransactionModel, TransactionType, Frequency } from '../model/TransactionModel';
+import type { TransactionModel, TransactionType, Frequency, PagedResponse } from '../model/TransactionModel';
 import {
   getAllTransactions,
   getTransactionById,
@@ -12,7 +12,9 @@ import {
   getTransactionsByDateRange,
   getTransactionsByFrequency,
   getTransactionsByDescription,
+  getTransactionsPage,
   generateTransactions,
+  type TransactionsPageParams,
 } from '../service/TransactionService';
 
 // Lista todas as transações
@@ -20,6 +22,14 @@ export const useTransactions = () => {
   return useQuery<TransactionModel[]>({
     queryKey: ['transactions'],
     queryFn: getAllTransactions,
+  });
+};
+
+// Lista paginada/filtrada (usada pela página de Transações)
+export const useTransactionsPage = (params: TransactionsPageParams) => {
+  return useQuery<PagedResponse<TransactionModel>>({
+    queryKey: ['transactions', 'paged', params],
+    queryFn: () => getTransactionsPage(params),
   });
 };
 

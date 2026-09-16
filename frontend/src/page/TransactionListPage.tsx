@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useDeleteTransaction, useTransactions } from '../hook/useTransaction';
+import { useDeleteTransaction, useTransactions, useTransactionsPage } from '../hook/useTransaction';
 import { useCategories } from '../hook/useCategory';
 import { useCashflow } from '../hook/useReports';
 import { PageHeader } from '../components/ui/PageHeader';
@@ -17,7 +17,7 @@ import {
   formatDayMonth,
   formatSignedCurrency,
 } from '../lib/format';
-import type { TransactionModel } from '../model/TransactionModel';
+import type { TransactionModel, Frequency, TransactionType } from '../model/TransactionModel';
 
 const EditIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -47,7 +47,7 @@ type TypeFilter = 'ALL' | 'INCOME' | 'EXPENSE';
 export const TransactionsListPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { data: transactions, isLoading, isError, error } = useTransactions();
+  const { data: transactions } = useTransactions();
   const { data: categories } = useCategories();
   const deleteMutation = useDeleteTransaction();
 
@@ -90,22 +90,24 @@ export const TransactionsListPage = () => {
     return base;
   }, [cashflow, type]);
 
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return [...(transactions ?? [])]
-      .filter((t) => {
-        if (type !== 'ALL' && t.type !== type) return false;
-        if (categoryId && t.category?.id !== categoryId) return false;
-        if (frequency && t.frequency !== frequency) return false;
-        if (q && !t.description.toLowerCase().includes(q)) return false;
-        return true;
-      })
-      .sort((a, b) => (a.date < b.date ? 1 : -1));
-  }, [transactions, type, categoryId, frequency, search]);
+  const {
+    data: pageData,
+    isLoading: pageLoading,
+    isError: pageIsError,
+    error: pageError,
+  } = useTransactionsPage({
+    page: page - 1,
+    size: PAGE_SIZE,
+    type: type === 'ALL' ? undefined : (type as TransactionType),
+    categoryId: categoryId || undefined,
+    frequency: (frequency || undefined) as Frequency | undefined,
+    search: search.trim() || undefined,
+  });
 
-  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const rows = pageData?.content ?? [];
+  const totalElements = pageData?.page.totalElements ?? 0;
+  const pageCount = Math.max(1, pageData?.page.totalPages ?? 1);
   const current = Math.min(page, pageCount);
-  const rows = filtered.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
 
   const resetFilters = () => {
     setType('ALL');
@@ -132,7 +134,7 @@ export const TransactionsListPage = () => {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Transações"
-        subtitle={`${filtered.length} movimentos · ${year}`}
+        subtitle={`${totalElements} movimentos · ${year}`}
         actions={
           <Segmented<TypeFilter>
             value={type}
@@ -201,11 +203,11 @@ export const TransactionsListPage = () => {
       </Card>
 
       <Card flush>
-        {isLoading && <div className="p-6 text-[13px] text-faint">A carregar…</div>}
-        {isError && (
-          <div className="p-6 text-[13px] text-expense">{(error as Error).message}</div>
+        {pageLoading && <div className="p-6 text-[13px] text-faint">A carregar…</div>}
+        {pageIsError && (
+          <div className="p-6 text-[13px] text-expense">{(pageError as Error).message}</div>
         )}
-        {!isLoading && !isError && (
+        {!pageLoading && !pageIsError && (
           <>
             <table className="w-full border-collapse">
               <thead>
@@ -286,7 +288,7 @@ export const TransactionsListPage = () => {
             <Pagination
               page={current}
               pageCount={pageCount}
-              total={filtered.length}
+              total={totalElements}
               pageSize={PAGE_SIZE}
               onPage={setPage}
             />
