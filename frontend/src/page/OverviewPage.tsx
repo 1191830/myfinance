@@ -6,6 +6,7 @@ import { useSavingGoals } from '../hook/useSavingGoal';
 import { useCategories } from '../hook/useCategory';
 import { usePeriod } from '../context/PeriodContext';
 import { latestTransactionMonth, monthBounds, oneMonthBefore } from '../lib/period';
+import { LAST_UPDATE_LABEL, NEXT_UPDATE_LABEL } from '../config/updates';
 import { Card } from '../components/ui/Card';
 import { SectionLabel } from '../components/ui/SectionLabel';
 import { StatCard } from '../components/ui/StatCard';
@@ -99,6 +100,17 @@ export const OverviewPage = () => {
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-2 text-[12px]">
+        <span className="inline-flex items-center gap-1.5 rounded-control bg-line-soft px-2.5 py-1 font-medium text-muted">
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+          {LAST_UPDATE_LABEL}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-control bg-gold-tint px-2.5 py-1 font-medium text-gold-text">
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
+          {NEXT_UPDATE_LABEL}
+        </span>
+      </div>
+
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-[26px] font-light">Visão geral</h1>
