@@ -79,12 +79,14 @@ the Render URL + `/api`. Render's free tier sleeps after ~15 min idle — expect
 request after a gap; the recurring-transaction scheduler's existing catch-up logic covers
 any daily run it slept through.
 
-Auto-deploy on push depends on a GitHub *webhook* existing, which Render's GitHub App only
-creates for repos actually in its installation scope — if pushing to `main` doesn't trigger
-a deploy and the repo has no `render.com` webhook under GitHub's repo Settings → Webhooks,
-check github.com/settings/installations → Render → Configure → make sure the repo is listed
-(not just that Render's own Branch/Auto-Deploy settings look right, which they can even
-when the webhook itself is missing).
+Render's own GitHub App webhook never worked for this service (no `render.com` webhook
+ever appeared under GitHub's repo Settings → Webhooks, even after confirming the repo was
+in the App's installation scope via github.com/settings/installations, and the dashboard
+exposes no repo disconnect/reconnect control to re-establish it). Auto-deploy instead runs
+through `.github/workflows/deploy-render.yml`: on every push to `main` it `curl`s the
+backend service's Render **Deploy Hook** URL (Settings → Deploy Hook in the Render
+dashboard), stored as the repo's `RENDER_DEPLOY_HOOK_URL` Actions secret — this bypasses
+Render's webhook mechanism entirely.
 
 ## Conventions
 
@@ -237,7 +239,4 @@ run test`. Broader page-level coverage is still future work.
    backend paged `GET /api/transactions`; broader frontend test coverage beyond the current
    foundation (page-level/route tests); a custom domain (Render/Vercel's default subdomains
    are in use); a household-management UI (creating/renaming a household, moving an account
-   between households — currently a migration-only, admin operation); Render auto-deploy
-   still doesn't fire on push (missing GitHub webhook despite the repo now being in Render's
-   GitHub App scope — next step is reconnecting the repo from Render's own Settings, or
-   recreating the Web Service).
+   between households — currently a migration-only, admin operation).

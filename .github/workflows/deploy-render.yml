@@ -1,0 +1,15 @@
+name: Deploy backend to Render
+
+# Render's GitHub App webhook for this service has repeatedly failed to auto-trigger
+# deploys (see CLAUDE.md's Roadmap note), even after fixing its installation repo scope.
+# Calling the service's Deploy Hook directly sidesteps that webhook entirely.
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        run: curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
