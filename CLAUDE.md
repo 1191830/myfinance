@@ -249,7 +249,19 @@ note its explicit `afterEach(cleanup)`, needed because `globals: false` means RT
 ambient-`afterEach` auto-cleanup never registers, so renders would otherwise leak across
 tests in the same file), covering `lib/format.ts`/`lib/period.ts`/`lib/apiError.ts`,
 `context/AuthContext.tsx`, and `components/forms/ChangePasswordForm.tsx` — 36 tests, `npm
-run test`. Broader page-level coverage is still future work. Transaction listing is
+run test`. Route/page-level coverage now also includes `router/ProtectedRoute.tsx` (the
+three auth-gating branches — no user, `mustChangePassword`, authenticated — via
+`MemoryRouter`, the first use of that pattern here), `page/LoginPage.tsx` (form
+submission, error display, disabled-button gating, the already-authenticated bounce
+through `location.state.from`), `page/MonthDetailPage.tsx` (month/year URL-param parsing
+and fallback, filter/sort/split logic, the next/previous-month navigation), and
+`page/SavingGoalListPage.tsx` (the search filter and the average-of-percentages progress
+math) — 50 tests total. Page tests mock the underlying `hook/*` modules directly rather
+than a `QueryClientProvider`, except `MonthDetailPage.test.tsx`, which needs a real
+(retry-disabled) `QueryClientProvider` because the `TransactionFormModal` it renders calls
+`useQueryClient()` directly. `CategoryListPage.tsx`/`DefinicoesPage.tsx` are still
+untested (thinner logic, lower priority) — broader coverage beyond this round is future
+work. Transaction listing is
 backend-paged: `GET /api/transactions/paged` combines a `TransactionSpecifications`-built
 filter (type/category/frequency/description) with `Pageable`, returned as a
 `PagedModel<Transaction>`; `TransactionsListPage.tsx` drives its table, filters, search and
@@ -260,8 +272,7 @@ whole-month semantics a generic page can't give them.
 
 ## Roadmap
 
-1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
-   broader frontend test coverage beyond the current foundation (page-level/route tests);
-   a custom domain (Render/Vercel's default subdomains are in use); a household-management
-   UI (creating/renaming a household, moving an account between households — currently a
-   migration-only, admin operation).
+1. **Deferred** — CSV/Excel export; further frontend test coverage
+   (`CategoryListPage.tsx`/`DefinicoesPage.tsx`); a custom domain (Render/Vercel's default
+   subdomains are in use); a household-management UI (creating/renaming a household,
+   moving an account between households — currently a migration-only, admin operation).
