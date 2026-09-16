@@ -26,4 +26,10 @@ public interface InvestmentService {
     List<Investment> getInvestmentsByCurrentValueGreaterThan(Double amount);
 
     List<Investment> getInvestmentsLastSyncedBefore(LocalDateTime dateTime);
+
+    /** Syncs crypto prices for the current household's ticker+quantity investments. */
+    int syncPrices();
+
+    /** Same as {@link #syncPrices()} but across every household - the daily scheduler's job. */
+    int syncPricesForAllHouseholds();
 }

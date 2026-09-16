@@ -21,6 +21,7 @@ export const InvestmentFormModal = ({ open, initial, onClose }: InvestmentFormMo
 
   const [type, setType] = useState('');
   const [ticker, setTicker] = useState('');
+  const [quantity, setQuantity] = useState('');
   const [amountInvested, setAmountInvested] = useState('');
   const [currentValue, setCurrentValue] = useState('');
   const [startDate, setStartDate] = useState(today());
@@ -37,6 +38,7 @@ export const InvestmentFormModal = ({ open, initial, onClose }: InvestmentFormMo
     if (!open) return;
     setType(initial?.type ?? '');
     setTicker(initial?.ticker ?? '');
+    setQuantity(initial?.quantity != null ? String(initial.quantity) : '');
     setAmountInvested(initial ? String(initial.amountInvested) : '');
     setCurrentValue(initial ? String(initial.currentValue) : '');
     setStartDate(initial?.startDate ?? today());
@@ -53,10 +55,12 @@ export const InvestmentFormModal = ({ open, initial, onClose }: InvestmentFormMo
 
     const investedNum = Number(amountInvested.replace(',', '.'));
     const currentNum = Number(currentValue.replace(',', '.'));
+    const quantityNum = quantity.trim() === '' ? undefined : Number(quantity.replace(',', '.'));
     const errors: Record<string, string> = {};
     if (!type.trim()) errors.type = 'O tipo é obrigatório';
     if (amountInvested === '' || investedNum < 0) errors.amountInvested = 'Indique um valor válido';
     if (currentValue === '' || currentNum < 0) errors.currentValue = 'Indique um valor válido';
+    if (quantityNum !== undefined && quantityNum < 0) errors.quantity = 'Indique um valor válido';
     if (!startDate) errors.startDate = 'A data de início é obrigatória';
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
@@ -69,11 +73,11 @@ export const InvestmentFormModal = ({ open, initial, onClose }: InvestmentFormMo
       id: initial?.id,
       type: type.trim(),
       ticker: ticker.trim() || undefined,
+      quantity: quantityNum,
       amountInvested: investedNum,
       currentValue: currentNum,
       startDate,
       notes: notes.trim() || undefined,
-      lastSynced: initial?.lastSynced,
     };
 
     const onError = (err: unknown) => {
@@ -124,6 +128,23 @@ export const InvestmentFormModal = ({ open, initial, onClose }: InvestmentFormMo
             />
           </FormField>
         </div>
+
+        <FormField label="Quantidade" error={fieldErrors.quantity}>
+          <input
+            type="number"
+            step="any"
+            min="0"
+            value={quantity}
+            onChange={(e) => setQuantity(e.target.value)}
+            className={formInputClass(!!fieldErrors.quantity)}
+            placeholder="opcional"
+          />
+          {!fieldErrors.quantity && (
+            <span className="text-[11px] text-faint">
+              Necessário junto com o ticker para sincronizar o preço automaticamente.
+            </span>
+          )}
+        </FormField>
 
         <div className="grid grid-cols-2 gap-3">
           <FormField label="Investido (€)" error={fieldErrors.amountInvested}>

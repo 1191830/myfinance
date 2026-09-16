@@ -34,6 +34,11 @@ export const deleteInvestment = async (id: string): Promise<void> => {
   await api.delete(`${ENDPOINT}/${id}`);
 };
 
+export const syncInvestmentPrices = async (): Promise<{ synced: number }> => {
+  const response = await api.post<{ synced: number }>(`${ENDPOINT}/sync-prices`);
+  return response.data;
+};
+
 export const getInvestmentsByType = async (type: string): Promise<Investment[]> => {
   const response = await api.get<Investment[]>(`${ENDPOINT}/type/${type}`);
   return response.data;

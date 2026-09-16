@@ -148,6 +148,16 @@ Render's webhook mechanism entirely.
   `value.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' })`.
 - Roll-ups and aggregation are done on the **backend** with `BigDecimal` — never by
   re-parsing formatted currency strings in React.
+- **Investment price sync is crypto-only**, via CoinGecko's free/keyless API
+  (`integration/CoinGeckoClient`) and a small hand-maintained ticker→coin-id allow-list
+  (`integration/CryptoTickerRegistry`) — an unmapped ticker is skipped, not an error. Only
+  investments with both `ticker` and `quantity` set are eligible; `currentValue =
+  quantity × price` and `lastSynced` are set server-side only (never trust a client's PUT
+  body for `lastSynced`) — `POST /api/investments/sync-prices` triggers it for the current
+  household (wired to the "Sincronizar" button on the Investimentos page), and
+  `InvestmentPriceSyncScheduler`'s daily job (00:15, offset from the recurring-transaction
+  job's 00:05) does it for every household, same unscoped-scheduler shape as
+  `RecurringTransactionScheduler` above.
 - Work on `develop`; `main` is the stable line.
 
 ## Domain model
@@ -173,8 +183,10 @@ Render's webhook mechanism entirely.
   `description`, `start_date` (first occurrence), `end_date?` (last occurrence), `active`.
 - `transactions` — `user_id`, `household_id`, `type`, `frequency`, `category`, `amount`,
   `date`, `description`, `recurring_id?` → template (set null when the template is deleted).
-- `investments` — `user_id`, `household_id`, `type`, `ticker?`, `amount_invested`,
-  `current_value`, `start_date`, `notes?`, `last_synced?`.
+- `investments` — `user_id`, `household_id`, `type`, `ticker?`, `quantity?`,
+  `amount_invested`, `current_value`, `start_date`, `notes?`, `last_synced?`. Price sync
+  (crypto only, via CoinGecko's free API) only touches rows where both `ticker` and
+  `quantity` are set — see Conventions.
 - `saving_goals` — `user_id`, `household_id`, `name`, `target_amount`, `current_amount`,
   `start_date`, `end_date?`.
 - `settings` — one row per **user** (`user_id` unique, deliberately *not* per household —

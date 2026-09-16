@@ -27,4 +27,10 @@ public interface InvestmentRepository extends JpaRepository<Investment, UUID> {
     // Encontrar investimentos que foram sincronizados antes de uma certa data
     List<Investment> findByHouseholdIdAndLastSyncedBeforeOrderByLastSyncedAsc(
             UUID householdId, LocalDateTime dateTime);
+
+    // Candidatos à sincronização de preço: têm ticker e quantidade definidos
+    List<Investment> findByHouseholdIdAndTickerIsNotNullAndQuantityIsNotNull(UUID householdId);
+
+    // Mesmo critério, mas sem escopo - usado apenas pelo agendador diário
+    List<Investment> findByTickerIsNotNullAndQuantityIsNotNull();
 }

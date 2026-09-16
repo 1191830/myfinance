@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -64,6 +65,13 @@ public class InvestmentController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // POST sync crypto prices for the current household's ticker+quantity investments
+    @PostMapping("/sync-prices")
+    public ResponseEntity<Map<String, Integer>> syncPrices() {
+        int synced = investmentService.syncPrices();
+        return ResponseEntity.ok(Map.of("synced", synced));
     }
 
     // GET investments by type

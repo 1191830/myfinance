@@ -11,6 +11,7 @@ import {
   getInvestmentsByTicker,
   getInvestmentsByCurrentValueGreaterThan,
   getInvestmentsLastSyncedBefore,
+  syncInvestmentPrices,
 } from '../service/InvestmentService';
 
 export const useInvestments = () => {
@@ -57,6 +58,16 @@ export const useDeleteInvestment = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: deleteInvestment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+    },
+  });
+};
+
+export const useSyncInvestmentPrices = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: syncInvestmentPrices,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
     },

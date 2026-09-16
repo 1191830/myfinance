@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useInvestments, useDeleteInvestment } from '../hook/useInvestment';
+import { useInvestments, useDeleteInvestment, useSyncInvestmentPrices } from '../hook/useInvestment';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 import { SectionLabel } from '../components/ui/SectionLabel';
@@ -27,12 +27,14 @@ const returnPct = (inv: Investment) =>
 export const InvestmentListPage = () => {
   const { data: investments, isLoading, isError, error } = useInvestments();
   const deleteMutation = useDeleteInvestment();
+  const syncMutation = useSyncInvestmentPrices();
 
   const [typeFilter, setTypeFilter] = useState('');
   const [search, setSearch] = useState('');
   const [toDelete, setToDelete] = useState<Investment | null>(null);
   const [editing, setEditing] = useState<Investment | undefined>(undefined);
   const [formOpen, setFormOpen] = useState(false);
+  const [lastSynced, setLastSynced] = useState<number | null>(null);
 
   const types = useMemo(
     () => Array.from(new Set((investments ?? []).map((i) => i.type))).sort(),
@@ -85,6 +87,11 @@ export const InvestmentListPage = () => {
     setEditing(i);
     setFormOpen(true);
   };
+  const handleSync = () => {
+    syncMutation.mutate(undefined, {
+      onSuccess: (res) => setLastSynced(res.synced),
+    });
+  };
 
   const num = 'tnum px-4 py-3 text-right text-[13px]';
   const numHead =
@@ -98,9 +105,16 @@ export const InvestmentListPage = () => {
         subtitle={`${filtered.length} posições`}
         actions={
           <>
+            {lastSynced !== null && (
+              <span className="text-xs text-faint">
+                {lastSynced} sincronizada{lastSynced === 1 ? '' : 's'}
+              </span>
+            )}
             <button
               type="button"
-              className="h-[34px] rounded-control border border-[#d7dbe0] bg-white px-3.5 text-[13px] text-ink"
+              onClick={handleSync}
+              disabled={syncMutation.isPending}
+              className="h-[34px] rounded-control border border-[#d7dbe0] bg-white px-3.5 text-[13px] text-ink disabled:opacity-60"
             >
               Sincronizar
             </button>
