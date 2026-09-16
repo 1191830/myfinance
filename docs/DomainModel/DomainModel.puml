@@ -56,11 +56,13 @@ class Investment {
   +UUID id
   +String type
   +String ticker
+  +Decimal quantity
   +Decimal amountInvested
   +Decimal currentValue
   +Date startDate
   +String notes
   +Timestamp lastSynced
+  +Decimal currentPrice
 }
 
 class SavingGoal {

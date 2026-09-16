@@ -24,6 +24,9 @@ public class Investment {
 
     private String ticker;
 
+    @Column(precision = 18, scale = 8)
+    private BigDecimal quantity;
+
     @NotNull(message = "O valor investido é obrigatório")
     @PositiveOrZero(message = "O valor investido não pode ser negativo")
     @Column(name = "amount_invested", nullable = false, precision = 12, scale = 2)
@@ -43,6 +46,9 @@ public class Investment {
 
     @Column(name = "last_synced")
     private LocalDateTime lastSynced;
+
+    @Column(name = "current_price", precision = 18, scale = 8)
+    private BigDecimal currentPrice;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -95,6 +101,14 @@ public class Investment {
         this.ticker = ticker;
     }
 
+    public BigDecimal getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(BigDecimal quantity) {
+        this.quantity = quantity;
+    }
+
     public BigDecimal getAmountInvested() {
         return amountInvested;
     }
@@ -133,5 +147,13 @@ public class Investment {
 
     public void setLastSynced(LocalDateTime lastSynced) {
         this.lastSynced = lastSynced;
+    }
+
+    public BigDecimal getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public void setCurrentPrice(BigDecimal currentPrice) {
+        this.currentPrice = currentPrice;
     }
 }

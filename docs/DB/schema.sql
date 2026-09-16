@@ -72,11 +72,13 @@ CREATE TABLE investments (
     household_id UUID NOT NULL REFERENCES households(id),
     type TEXT NOT NULL, -- e.g., 'ETF', 'Stock', 'Crypto'
     ticker TEXT,        -- optional for automatic sync
+    quantity NUMERIC(18, 8), -- units held; optional, needed to roll current_price into current_value
     amount_invested NUMERIC(12, 2) NOT NULL,
     current_value NUMERIC(12, 2) NOT NULL,
     start_date DATE NOT NULL,
     notes TEXT,
-    last_synced TIMESTAMP
+    last_synced TIMESTAMP,
+    current_price NUMERIC(18, 8) -- per-unit live price from sync, independent of quantity
 );
 
 CREATE TABLE saving_goals (
