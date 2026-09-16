@@ -223,12 +223,21 @@ integration tests cover the same flows end to end through the real REST API (eac
 in through the real `/api/auth/login` flow first, and `HouseholdSharingIT` specifically
 proves two accounts in one household share data while a third in a different household
 sees none of it) — all 24 tests verified passing (`./mvnw test`, see Run/build above for the
-Docker/Testcontainers version-pin this needed). Frontend has no test tooling yet.
+Docker/Testcontainers version-pin this needed). Frontend testing foundation is done: Vitest
++ jsdom + React Testing Library (`vite.config.ts`'s `test` block, `src/test/setup.ts` —
+note its explicit `afterEach(cleanup)`, needed because `globals: false` means RTL's own
+ambient-`afterEach` auto-cleanup never registers, so renders would otherwise leak across
+tests in the same file), covering `lib/format.ts`/`lib/period.ts`/`lib/apiError.ts`,
+`context/AuthContext.tsx`, and `components/forms/ChangePasswordForm.tsx` — 36 tests, `npm
+run test`. Broader page-level coverage is still future work.
 
 ## Roadmap
 
 1. **Deferred** — investment price sync via `ticker`/`last_synced`; CSV/Excel export;
-   backend paged `GET /api/transactions`; frontend tests (Vitest + React Testing Library,
-   deliberately left out of this round); a custom domain (Render/Vercel's default
-   subdomains are in use); a household-management UI (creating/renaming a household, moving
-   an account between households — currently a migration-only, admin operation).
+   backend paged `GET /api/transactions`; broader frontend test coverage beyond the current
+   foundation (page-level/route tests); a custom domain (Render/Vercel's default subdomains
+   are in use); a household-management UI (creating/renaming a household, moving an account
+   between households — currently a migration-only, admin operation); Render auto-deploy
+   still doesn't fire on push (missing GitHub webhook despite the repo now being in Render's
+   GitHub App scope — next step is reconnecting the repo from Render's own Settings, or
+   recreating the Web Service).
