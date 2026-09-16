@@ -39,6 +39,17 @@ export const syncInvestmentPrices = async (): Promise<{ synced: number }> => {
   return response.data;
 };
 
+export const buyMoreInvestment = async (
+  id: string,
+  quantity: number,
+  unitPrice: number,
+): Promise<Investment> => {
+  const response = await api.post<Investment>(`${ENDPOINT}/${id}/buy`, null, {
+    params: { quantity, unitPrice },
+  });
+  return response.data;
+};
+
 export const getInvestmentsByType = async (type: string): Promise<Investment[]> => {
   const response = await api.get<Investment[]>(`${ENDPOINT}/type/${type}`);
   return response.data;

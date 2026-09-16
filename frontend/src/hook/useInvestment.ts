@@ -12,6 +12,7 @@ import {
   getInvestmentsByCurrentValueGreaterThan,
   getInvestmentsLastSyncedBefore,
   syncInvestmentPrices,
+  buyMoreInvestment,
 } from '../service/InvestmentService';
 
 export const useInvestments = () => {
@@ -68,6 +69,17 @@ export const useSyncInvestmentPrices = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: syncInvestmentPrices,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+    },
+  });
+};
+
+export const useBuyMoreInvestment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, quantity, unitPrice }: { id: string; quantity: number; unitPrice: number }) =>
+      buyMoreInvestment(id, quantity, unitPrice),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
     },

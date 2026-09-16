@@ -8,6 +8,7 @@ import { FilterSelect } from '../components/ui/FilterSelect';
 import { ConfirmDialog } from '../components/ui/ConfirmDialog';
 import { CategoryDonut, type DonutSlice } from '../components/charts/CategoryDonut';
 import { InvestmentFormModal } from '../components/forms/InvestmentFormModal';
+import { BuyMoreModal } from '../components/forms/BuyMoreModal';
 import { formatCurrency, formatMonthYear, formatPercent } from '../lib/format';
 import type { Investment } from '../model/InvestmentModel';
 
@@ -16,6 +17,12 @@ const ALLOC_PALETTE = ['#1f6fbf', '#4b82c4', '#1f8a5f', '#e0a53a', '#8a97a4', '#
 const EditIcon = () => (
   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M4 21h4l11-11a2.5 2.5 0 0 0-4-4L4 17v4Z" />
+  </svg>
+);
+
+const BuyMoreIcon = () => (
+  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M12 5v14M5 12h14" />
   </svg>
 );
 
@@ -34,6 +41,8 @@ export const InvestmentListPage = () => {
   const [toDelete, setToDelete] = useState<Investment | null>(null);
   const [editing, setEditing] = useState<Investment | undefined>(undefined);
   const [formOpen, setFormOpen] = useState(false);
+  const [buying, setBuying] = useState<Investment | undefined>(undefined);
+  const [buyOpen, setBuyOpen] = useState(false);
   const [lastSynced, setLastSynced] = useState<number | null>(null);
 
   const types = useMemo(
@@ -86,6 +95,10 @@ export const InvestmentListPage = () => {
   const openEdit = (i: Investment) => {
     setEditing(i);
     setFormOpen(true);
+  };
+  const openBuyMore = (i: Investment) => {
+    setBuying(i);
+    setBuyOpen(true);
   };
   const handleSync = () => {
     syncMutation.mutate(undefined, {
@@ -183,6 +196,8 @@ export const InvestmentListPage = () => {
                 <tr>
                   <th className={textHead}>Tipo</th>
                   <th className={textHead}>Ticker</th>
+                  <th className={numHead}>Preço médio</th>
+                  <th className={numHead}>Preço atual</th>
                   <th className={numHead}>Investido</th>
                   <th className={numHead}>Valor atual</th>
                   <th className={numHead}>Retorno</th>
@@ -194,10 +209,17 @@ export const InvestmentListPage = () => {
                 {filtered.map((i) => {
                   const ret = i.currentValue - i.amountInvested;
                   const pct = returnPct(i);
+                  const averagePrice = i.quantity ? i.amountInvested / i.quantity : null;
                   return (
                     <tr key={i.id} className="border-t border-[#f1f3f5]">
                       <td className="px-4 py-3 text-[13px] text-muted">{i.type}</td>
                       <td className="px-4 py-3 text-[13px] font-medium">{i.ticker ?? '—'}</td>
+                      <td className={`${num} text-faint`}>
+                        {averagePrice !== null ? formatCurrency(averagePrice) : '—'}
+                      </td>
+                      <td className={`${num} text-faint`}>
+                        {i.currentPrice != null ? formatCurrency(i.currentPrice) : '—'}
+                      </td>
                       <td className={`${num} text-muted`}>{formatCurrency(i.amountInvested)}</td>
                       <td className={num}>{formatCurrency(i.currentValue)}</td>
                       <td className={`${num} font-medium ${ret >= 0 ? 'text-income' : 'text-expense'}`}>
@@ -208,6 +230,14 @@ export const InvestmentListPage = () => {
                       <td className={`${num} text-faint`}>{formatMonthYear(i.startDate)}</td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2.5">
+                          <button
+                            type="button"
+                            onClick={() => openBuyMore(i)}
+                            className="text-faint hover:text-income"
+                            aria-label={`Comprar mais ${i.ticker ?? i.type}`}
+                          >
+                            <BuyMoreIcon />
+                          </button>
                           <button
                             type="button"
                             onClick={() => openEdit(i)}
@@ -242,7 +272,7 @@ export const InvestmentListPage = () => {
                 })}
                 {!filtered.length && (
                   <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-[13px] text-faint">
+                    <td colSpan={9} className="px-4 py-6 text-center text-[13px] text-faint">
                       Nenhum investimento.
                     </td>
                   </tr>
@@ -252,6 +282,8 @@ export const InvestmentListPage = () => {
                 <tfoot>
                   <tr className="border-t-2 border-line">
                     <td className="px-4 py-3 text-[13px] font-semibold">Total</td>
+                    <td />
+                    <td />
                     <td />
                     <td className={`${num} font-semibold`}>{formatCurrency(totals.invested)}</td>
                     <td className={`${num} font-semibold`}>{formatCurrency(totals.current)}</td>
@@ -288,6 +320,7 @@ export const InvestmentListPage = () => {
       )}
 
       <InvestmentFormModal open={formOpen} initial={editing} onClose={() => setFormOpen(false)} />
+      <BuyMoreModal open={buyOpen} investment={buying} onClose={() => setBuyOpen(false)} />
 
       <ConfirmDialog
         open={!!toDelete}

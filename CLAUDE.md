@@ -150,13 +150,15 @@ Render's webhook mechanism entirely.
   re-parsing formatted currency strings in React.
 - **Investment price sync is crypto-only**, via CoinGecko's free/keyless API
   (`integration/CoinGeckoClient`) and a small hand-maintained ticker→coin-id allow-list
-  (`integration/CryptoTickerRegistry`) — an unmapped ticker is skipped, not an error. Only
-  investments with both `ticker` and `quantity` set are eligible; `currentValue =
-  quantity × price` and `lastSynced` are set server-side only (never trust a client's PUT
-  body for `lastSynced`) — `POST /api/investments/sync-prices` triggers it for the current
-  household (wired to the "Sincronizar" button on the Investimentos page), and
-  `InvestmentPriceSyncScheduler`'s daily job (00:15, offset from the recurring-transaction
-  job's 00:05) does it for every household, same unscoped-scheduler shape as
+  (`integration/CryptoTickerRegistry`) — an unmapped ticker is skipped, not an error. Any
+  investment with a recognized `ticker` is eligible, regardless of `quantity`:
+  `currentPrice` (and `lastSynced`) always gets set, and `currentValue = quantity ×
+  currentPrice` is *additionally* set only when `quantity` is non-null — `currentPrice` and
+  `lastSynced` are set server-side only, never trusted from a client's PUT body.
+  `POST /api/investments/sync-prices` triggers it for the current household (wired to the
+  "Sincronizar" button on the Investimentos page), and `InvestmentPriceSyncScheduler`'s
+  daily job (00:15, offset from the recurring-transaction job's 00:05) does it for every
+  household, same unscoped-scheduler shape as
   `RecurringTransactionScheduler` above.
 - Work on `develop`; `main` is the stable line.
 
@@ -184,9 +186,13 @@ Render's webhook mechanism entirely.
 - `transactions` — `user_id`, `household_id`, `type`, `frequency`, `category`, `amount`,
   `date`, `description`, `recurring_id?` → template (set null when the template is deleted).
 - `investments` — `user_id`, `household_id`, `type`, `ticker?`, `quantity?`,
-  `amount_invested`, `current_value`, `start_date`, `notes?`, `last_synced?`. Price sync
-  (crypto only, via CoinGecko's free API) only touches rows where both `ticker` and
-  `quantity` are set — see Conventions.
+  `amount_invested`, `current_value`, `start_date`, `notes?`, `last_synced?`,
+  `current_price?`. Price sync (crypto only, via CoinGecko's free API) touches any row
+  with a `ticker` it recognizes — `quantity` is optional, only needed to also roll
+  `current_price` up into a total `current_value` — see Conventions. "Comprar mais"
+  (`POST /api/investments/{id}/buy`) records a new purchase by summing into the existing
+  `quantity`/`amount_invested`, which is exactly the weighted-average-cost formula; the
+  average purchase price itself is never stored, just `amount_invested ÷ quantity`.
 - `saving_goals` — `user_id`, `household_id`, `name`, `target_amount`, `current_amount`,
   `start_date`, `end_date?`.
 - `settings` — one row per **user** (`user_id` unique, deliberately *not* per household —

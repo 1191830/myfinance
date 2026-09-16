@@ -2,6 +2,7 @@ package com.myfinance.backend.service;
 
 import com.myfinance.backend.model.Investment;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -32,4 +33,11 @@ public interface InvestmentService {
 
     /** Same as {@link #syncPrices()} but across every household - the daily scheduler's job. */
     int syncPricesForAllHouseholds();
+
+    /**
+     * Records a new purchase: blends into the existing quantity/amountInvested (both are
+     * simply summed, which is exactly the weighted-average-cost formula) rather than
+     * requiring the caller to hand-compute new totals.
+     */
+    Investment addPurchase(UUID id, BigDecimal quantity, BigDecimal unitPrice);
 }

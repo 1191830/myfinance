@@ -47,6 +47,9 @@ public class Investment {
     @Column(name = "last_synced")
     private LocalDateTime lastSynced;
 
+    @Column(name = "current_price", precision = 18, scale = 8)
+    private BigDecimal currentPrice;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
@@ -144,5 +147,13 @@ public class Investment {
 
     public void setLastSynced(LocalDateTime lastSynced) {
         this.lastSynced = lastSynced;
+    }
+
+    public BigDecimal getCurrentPrice() {
+        return currentPrice;
+    }
+
+    public void setCurrentPrice(BigDecimal currentPrice) {
+        this.currentPrice = currentPrice;
     }
 }

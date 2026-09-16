@@ -101,19 +101,19 @@ public class InvestmentServiceImpl implements InvestmentService {
 
     @Override
     public int syncPrices() {
-        return syncFor(investmentRepository.findByHouseholdIdAndTickerIsNotNullAndQuantityIsNotNull(
-                currentHousehold.resolve()));
+        return syncFor(investmentRepository.findByHouseholdIdAndTickerIsNotNull(currentHousehold.resolve()));
     }
 
     @Override
     public int syncPricesForAllHouseholds() {
-        return syncFor(investmentRepository.findByTickerIsNotNullAndQuantityIsNotNull());
+        return syncFor(investmentRepository.findByTickerIsNotNull());
     }
 
     /**
      * Resolves each candidate's ticker to a CoinGecko coin id (skipping unmapped ones),
-     * batch-fetches EUR prices in a single call, and updates currentValue/lastSynced for
-     * every investment CoinGecko actually priced.
+     * batch-fetches EUR prices in a single call, and updates currentPrice/lastSynced for
+     * every investment CoinGecko actually priced - quantity is optional, only needed to
+     * also roll the per-unit price up into a total currentValue.
      */
     private int syncFor(List<Investment> candidates) {
         Map<String, String> coinGeckoIdByTicker = new HashMap<>();
@@ -135,11 +135,26 @@ public class InvestmentServiceImpl implements InvestmentService {
             if (price == null) {
                 continue;
             }
-            investment.setCurrentValue(investment.getQuantity().multiply(price));
+            investment.setCurrentPrice(price);
+            if (investment.getQuantity() != null) {
+                investment.setCurrentValue(investment.getQuantity().multiply(price));
+            }
             investment.setLastSynced(LocalDateTime.now());
             investmentRepository.save(investment);
             synced++;
         }
         return synced;
+    }
+
+    @Override
+    public Investment addPurchase(UUID id, BigDecimal quantity, BigDecimal unitPrice) {
+        Investment existing = investmentRepository.findByIdAndHouseholdId(id, currentHousehold.resolve())
+                .orElseThrow(() -> new IllegalArgumentException("Investment not found."));
+        BigDecimal existingQuantity = existing.getQuantity() != null ? existing.getQuantity() : BigDecimal.ZERO;
+        BigDecimal purchaseCost = quantity.multiply(unitPrice);
+        existing.setQuantity(existingQuantity.add(quantity));
+        existing.setAmountInvested(existing.getAmountInvested().add(purchaseCost));
+        existing.setCurrentValue(existing.getCurrentValue().add(purchaseCost));
+        return investmentRepository.save(existing);
     }
 }

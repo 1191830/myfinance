@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,22 @@ public class InvestmentController {
         }
     }
 
+    // POST record a new purchase - blends into the existing quantity/amountInvested
+    // (summing both is exactly the weighted-average-cost formula)
+    @PostMapping("/{id}/buy")
+    public ResponseEntity<Investment> addPurchase(@PathVariable UUID id,
+            @RequestParam BigDecimal quantity, @RequestParam BigDecimal unitPrice) {
+        if (quantity.signum() <= 0 || unitPrice.signum() < 0) {
+            return ResponseEntity.badRequest().build();
+        }
+        try {
+            Investment updated = investmentService.addPurchase(id, quantity, unitPrice);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // DELETE investment by id
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteInvestment(@PathVariable UUID id) {
@@ -67,7 +84,7 @@ public class InvestmentController {
         }
     }
 
-    // POST sync crypto prices for the current household's ticker+quantity investments
+    // POST sync crypto prices for the current household's ticker investments
     @PostMapping("/sync-prices")
     public ResponseEntity<Map<String, Integer>> syncPrices() {
         int synced = investmentService.syncPrices();
