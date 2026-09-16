@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,5 +71,38 @@ class TransactionControllerIT extends AbstractIntegrationTest {
                                 + "\"date\":\"2026-05-01\",\"description\":\"IT test\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.type").exists());
+    }
+
+    private void createTransaction(String type, String amount, String description) throws Exception {
+        mockMvc.perform(auth(post("/api/transactions"))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"type\":\"" + type + "\",\"frequency\":\"ONE_TIME\","
+                                + "\"amount\":" + amount + ",\"date\":\"2026-05-01\","
+                                + "\"description\":\"" + description + "\"}"))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void getTransactionsPaged_returnsOnePageAndTheRightTotal() throws Exception {
+        createTransaction("EXPENSE", "10", "Paged A");
+        createTransaction("EXPENSE", "20", "Paged B");
+        createTransaction("EXPENSE", "30", "Paged C");
+
+        mockMvc.perform(auth(get("/api/transactions/paged")).param("page", "0").param("size", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.page.totalElements").value(3))
+                .andExpect(jsonPath("$.page.totalPages").value(2));
+    }
+
+    @Test
+    void getTransactionsPaged_filtersByType() throws Exception {
+        createTransaction("EXPENSE", "10", "Filter expense");
+        createTransaction("INCOME", "500", "Filter income");
+
+        mockMvc.perform(auth(get("/api/transactions/paged")).param("type", "INCOME"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].description").value("Filter income"));
     }
 }

@@ -1,9 +1,15 @@
 package com.myfinance.backend.controller;
 
 import com.myfinance.backend.model.Transaction;
+import com.myfinance.backend.model.TransactionFrequency;
 import com.myfinance.backend.model.TransactionType;
 import com.myfinance.backend.service.TransactionService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +35,18 @@ public class TransactionController {
     public ResponseEntity<List<Transaction>> getAllTransactions() {
         List<Transaction> transactions = transactionService.getAllTransactions();
         return ResponseEntity.ok(transactions);
+    }
+
+    // GET transactions, paginated and filterable (used by the Transações list screen)
+    @GetMapping("/paged")
+    public PagedModel<Transaction> getTransactionsPaged(
+            @PageableDefault(size = 20, sort = "date", direction = Sort.Direction.DESC) Pageable pageable,
+            @RequestParam(required = false) TransactionType type,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) TransactionFrequency frequency,
+            @RequestParam(required = false) String search) {
+        Page<Transaction> page = transactionService.getTransactionsPage(pageable, type, categoryId, frequency, search);
+        return new PagedModel<>(page);
     }
 
     // GET transaction by id

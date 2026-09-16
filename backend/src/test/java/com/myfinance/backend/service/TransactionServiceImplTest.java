@@ -19,6 +19,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -181,6 +186,23 @@ class TransactionServiceImplTest {
 
         assertThat(created).isZero();
         verify(transactionRepository, never()).save(any());
+    }
+
+    // --- getTransactionsPage ---
+
+    @Test
+    void getTransactionsPage_delegatesToRepositoryWithHouseholdScopedSpecAndReturnsItsPage() {
+        Transaction t = new Transaction();
+        t.setHouseholdId(TEST_HOUSEHOLD_ID);
+        Pageable pageable = PageRequest.of(0, 2);
+        Page<Transaction> expected = new PageImpl<>(List.of(t), pageable, 1);
+        when(transactionRepository.findAll(any(Specification.class), any(Pageable.class))).thenReturn(expected);
+
+        Page<Transaction> result = service(LocalDate.now())
+                .getTransactionsPage(pageable, TransactionType.EXPENSE, null, null, null);
+
+        assertThat(result).isSameAs(expected);
+        verify(transactionRepository).findAll(any(Specification.class), any(Pageable.class));
     }
 
     // --- category resolution (regression test for the transient-entity fix) ---

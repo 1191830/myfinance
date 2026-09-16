@@ -1,7 +1,10 @@
 package com.myfinance.backend.service;
 
 import com.myfinance.backend.model.Transaction;
+import com.myfinance.backend.model.TransactionFrequency;
 import com.myfinance.backend.model.TransactionType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -11,6 +14,9 @@ import java.util.UUID;
 public interface TransactionService {
 
     List<Transaction> getAllTransactions();
+
+    Page<Transaction> getTransactionsPage(Pageable pageable, TransactionType type, UUID categoryId,
+            TransactionFrequency frequency, String search);
 
     Optional<Transaction> getTransactionById(UUID id);
 
